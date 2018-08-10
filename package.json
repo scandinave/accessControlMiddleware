@@ -12,9 +12,8 @@
   "author": "LE BARO Romain",
   "license": "MIT",
   "devDependencies": {
+    "eslint": "^5.3.0",
     "mocha": "^5.2.0"
   },
-  "dependencies": {
-    "eslint": "^5.3.0"
-  }
+  "dependencies": {}
 }
