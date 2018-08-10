@@ -1,0 +1,17 @@
+{
+  "name": "accesscontrolmiddleware",
+  "version": "1.0.0",
+  "description": "Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "HRBAC"
+  ],
+  "author": "LE BARO Romain",
+  "license": "MIT",
+  "devDependencies": {
+    "mocha": "^5.2.0"
+  }
+}
