@@ -50,6 +50,15 @@ class Common {
             throw new Error(err);
         }
     }
+
+    /**
+    * Prefix the user name to avoid collision with role name in accessControl object.
+    * @param {string} name The name of the user.
+    * @return {string} The prefixed user name.
+    */
+    static computeUserName(name) {
+        return `u-${name}`;
+    }
 }
 
 module.exports = Common;

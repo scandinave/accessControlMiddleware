@@ -2,42 +2,33 @@
 const Common = require("./common");
 class AccessControlMiddleware {
 
-    constructor(secret) {
+    constructor(secret, accessControl) {
         this.secret = secret;
+        this.accessControl = accessControl;
     }
 
-    check({ context } = {}) {
+    check({ resource, action, context } = {}) {
         return (req, res, next) => {
-            //const userAuthorizations = ...;
+            const actions = this.getActions(action);
+            const permission = this.accessControl.can(Common.computeUserName(user.name));
             if (this.hasRelatedToken(req.body)) {
                 this.checkRelated();
             } else if (this.isMultipleResources(context)) {
-                switch (this.getUserAuthorizationType()) {
-                    case "generic":
-                        this.checkGeneric();
-                        break;
-                    case "dynamic":
-                        this.checkHybride();
-                        break;
-                    case "specific":
-                        this.checkHybride();
-                        break;
-                    default:
-                        break;
+                if (this.hasGeneric(permission, actions, resource)) {
+
+                } else if (this.hasHybride(permission, actions, resource)) {
+                    // User must have access to an filtered list if it have access to some item of the list.
+                } else {
+                    return res.status(403).send();
                 }
             } else {
-                switch (this.getUserAuthorizationType()) {
-                    case "generic":
-                        this.checkGeneric();
-                        break;
-                    case "dynamic":
-                        this.checkDynamic();
-                        break;
-                    case "specific":
-                        this.checkSpecific();
-                        break;
-                    default:
-                        break;
+                if (this.hasGeneric(permission, actions, resource)) {
+
+                } else if (this.hasHybride(permission, actions, resource)) {
+                    this.checkDynamic();
+                    this.checkSpecific();
+                } else {
+                    return res.status(403).send();
                 }
             }
         }
@@ -52,18 +43,18 @@ class AccessControlMiddleware {
     }
 
     /**
-     * Checl that the user have the correct genereic authorization in it' access token.
+     * Checl that the user have the correct generic authorization.
      */
-    checkGeneric() {
-
+    hasGeneric(permission, actions, resource) {
+        this.hasPermission(permission, actions.any, resource)
     }
 
     /**
      * Check that the user have the specific or dynamic authorization
      * in it's access token.
      */
-    checkHybride() {
-
+    hasHybride(permission, actions, resource) {
+        this.hasPermission(permission, actions.own, resource)
     }
 
     /**
@@ -121,8 +112,60 @@ class AccessControlMiddleware {
         return Common.isNotEmpty(context);
     }
 
-    getUserAuthorizationType() {
+    /**
+     * @param AccessControl#query 
+     */
+    getUserAuthorizationType(authorization) {
 
+    }
+
+    /**
+     * Check that a permission is valid.
+     * @param {*} permission The objectionJS permissionObject
+     * @param {*} action The action/posession to check
+     * @param {*} resource The resource to validate.
+     * @return {boolean} True if the permission is valid , false otherwise.
+     */
+    hasPermission(permission, action, resource) {
+        return permission[action] && permission[action](resource) && permission[action](resource).granted;
+    }
+
+    /**
+     * Get AccessControl action base on string action.
+     * @param {string} action The string to convert to AccessControl actions.
+     */
+    getActions(action) {
+        const actions = {};
+
+        switch (action) {
+
+            case "create":
+                actions.any = "createAny";
+                actions.own = "createOwn";
+                break;
+
+            case "update":
+                actions.any = "updateAny";
+                actions.own = "updateOwn";
+                break;
+
+
+            case "read":
+                actions.any = "readAny";
+                actions.own = "readOwn";
+                break;
+
+
+            case "delete":
+                actions.any = "deleteAny";
+                actions.own = "deleteOwn";
+                break;
+
+            default:
+                return next(new Error("invalid action"));
+        }
+
+        return actions;
     }
 
 }
