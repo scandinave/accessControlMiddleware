@@ -2,76 +2,118 @@
 const Common = require("./common");
 class AccessControlMiddleware {
 
-    constructor(secret, accessControl) {
+    constructor(secret, accessControl, userKey = "user", usernameKey = "name") {
         this.secret = secret;
         this.accessControl = accessControl;
+        this.userKey = userKey;
+        this.usernameKey = usernameKey;
     }
 
-    check({ resource, action, context } = {}) {
+
+    check({resource, action, context} = {}) {
         return (req, res, next) => {
-            const actions = this.getActions(action);
-            const permission = this.accessControl.can(Common.computeUserName(user.name));
-            if (this.hasRelatedToken(req.body)) {
-                this.checkRelated();
-            } else if (this.isMultipleResources(context)) {
-                if (this.hasGeneric(permission, actions, resource)) {
+            this.isAuthorized(resource, action, context, req, res, next);
+        }
+    }
 
-                } else if (this.hasHybride(permission, actions, resource)) {
-                    // User must have access to an filtered list if it have access to some item of the list.
-                } else {
-                    return res.status(403).send();
+    isAuthorized({resource, action, context, req, res, next} = {}) {
+        let isAuthorize = false;
+        let actions;
+        try {
+            actions = this.getActions(action);
+        } catch (err) {
+            return next(err);
+        }
+        const permission = this.accessControl.can(Common.computeUserName(this.getUserName(req)));
+        if (this.hasRelatedToken(req.body)) {
+            this.checkRelated();
+        } else if (this.isMultipleResources(context)) {
+            if (this.hasGeneric(permission, actions, resource)) {
+                isAuthorize = true
+            } else if (this.hasOwn(permission, actions, resource)) {
+                // User must have access to an filtered list if it have access to some item of the list.
+                isAuthorize = true
+            }
+        } else {
+            if (this.hasGeneric(permission, actions, resource)) {
+                isAuthorize = true
+            } else if (this.hasOwn(permission, actions, resource)) {
+                if (this.checkSpecific(context.type, context.fkey, context.resources)) {
+                    isAuthorize = true
                 }
-            } else {
-                if (this.hasGeneric(permission, actions, resource)) {
-
-                } else if (this.hasHybride(permission, actions, resource)) {
-                    this.checkDynamic();
-                    this.checkSpecific();
-                } else {
-                    return res.status(403).send();
+                else if (this.checkDynamic(context.fkey, context.resources)) {
+                    isAuthorize = true
                 }
             }
+        }
+        if (isAuthorize) {
+            res.permission = permission[actions.any](resource);
+            return next();
         }
     }
 
     /**
-     * Check that the user have correct the dynamic authorization
-     * in it's access token.
+     * Return the user name extract from the request object
+     * @param {HttpRequest} req The request object
+     * @return {String} The user name.
      */
-    checkDynamic() {
-
+    getUserName(req) {
+        return req[this.userKey][this.usernameKey];
     }
 
     /**
-     * Checl that the user have the correct generic authorization.
+     * Check that the user have correct the dynamic authorization (eg: Association make by a foreign key in database) in it's access token. This make possible authorizations like "user can access it's profil".
+     * @param {String} fkey The primary key of the resource of the route protected
+     * @param {resources} resources The resources objects extract from the user accessToken
+     * @return {Boolean} True if the resource is find inside resources object, False otherwise
+     */
+    checkDynamic(fkey, resources) {
+        return resources.find(resource => resource.id === fkey) !== undefined;
+    }
+
+    /**
+     * Check that the user have the correct specific authorization in it's access token
+     * @param {String} type The resource type of the route protected
+     * @param {String} fkey The primary key of the resource of the route protected
+     * @param {resources} resources The resources objects extract from the user accessToken
+     * @return {Boolean} True if the resource is find inside resources object, False otherwise
+     */
+    checkSpecific(type, fkey, resources) {
+        return resources.find(resource => resource.fkey === fkey && resource.type === type) !== undefined;
+    }
+
+    /**
+     * Check if the user have a generic permission correspondind to the action and resource wanted.
+     * @param {AccessControl.query} permission
+     * @param {Object} actions Object that contains generic/specific actions that correspond to the action wanted
+     * @param {String} resource The resource wanted
+     * @return {Boolean} True if the user have generic permission, false otherwise.
      */
     hasGeneric(permission, actions, resource) {
-        this.hasPermission(permission, actions.any, resource)
+        return this.hasPermission(permission, actions.any, resource);
     }
 
     /**
-     * Check that the user have the specific or dynamic authorization
-     * in it's access token.
+     * Check if the use have a specific permission correspondind to the action and resource wanted.
+     * @param {AccessControl.query} permission
+     * @param {Object} actions Object that contains generic/specific actions that correspond to the action wanted
+     * @param {String} resource The resource wanted
+     * @return {Boolean} True if the user have specific permission, false otherwise.
      */
-    hasHybride(permission, actions, resource) {
-        this.hasPermission(permission, actions.own, resource)
+    hasOwn(permission, actions, resource) {
+        return this.hasPermission(permission, actions.own, resource);
     }
 
-    /**
-     * Checl that the user have the correct specific authorization in it's access token
-     */
-    checkSpecific() {
 
-    }
 
     /**
-     * Check if the client send a resource related token that cause the request 
+     * Check if the client send a resource related token that cause the request
      * to bypass others checks.
      * @param body The request body.
      * @return True if a related token is present in the request body, false otherwise
      */
     hasRelatedToken(body) {
-        if (Common.isEmpty(body)) {
+        if (Common.isNotDefined(body)) {
             throw new Error("Missing parameter : body");
         }
         return Common.isNotEmpty(body.relatedToken);
@@ -79,9 +121,9 @@ class AccessControlMiddleware {
 
     /**
      * Check the resource related token to ensure the client can access the resource.
-     * 
+     *
      */
-    checkRelated({ token, resource } = {}) {
+    checkRelated({token, resource} = {}) {
         let countError = 0;
         if (Common.isEmpty(token)) {
             countError++;
@@ -109,14 +151,7 @@ class AccessControlMiddleware {
      * @return True if a context is present and false otherwise.
      */
     isMultipleResources(context = {}) {
-        return Common.isNotEmpty(context);
-    }
-
-    /**
-     * @param AccessControl#query 
-     */
-    getUserAuthorizationType(authorization) {
-
+        return Common.isEmpty(context);
     }
 
     /**
@@ -162,7 +197,7 @@ class AccessControlMiddleware {
                 break;
 
             default:
-                return next(new Error("invalid action"));
+                throw new Error("Invalid action");
         }
 
         return actions;
