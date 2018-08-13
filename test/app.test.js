@@ -60,4 +60,8 @@ describe("AccessControlMiddleware", () => {
             expect(acm.isMultipleResources({ source: "params", key: "fooId" })).to.be.true;
         });
     });
+
+    descrive("getUserAuthorizationType", () => {
+
+    });
 });
