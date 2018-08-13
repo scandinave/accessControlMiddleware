@@ -23,6 +23,24 @@ class Common {
     }
 
     /**
+     * Check if an elem null or undefined.
+     * @param {*} elem The elem to check.
+     * @return {boolean} true if, the elem is defined, false otherwise.
+     */
+    static isDefined(elem) {
+        return !this.isNotDefined(elem);
+    }
+
+    /**
+     * Check if an elem null or undefined.
+     * @param {*} elem The elem to check.
+     * @return {boolean} true if, the elem is defined, false otherwise.
+     */
+    static isNotDefined(elem) {
+        return typeof elem === "undefined" || elem === null || elem === "";
+    }
+
+    /**
     * Check if an elem is not empty. This method check for null or undefined value.
     * If elem is an array, also check for size greater than 0.
     * @param {*} elem The elem to check.

@@ -12,6 +12,7 @@
   "author": "LE BARO Romain",
   "license": "MIT",
   "devDependencies": {
+    "accesscontrol": "^2.2.1",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
     "chai-like": "^1.1.1",
