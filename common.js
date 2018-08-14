@@ -57,7 +57,7 @@ class Common {
    * @param {string} format The token format (eg: JWT, Bearer ...)
    * @return {Object} The decode token data
    */
-    static verifyToken(token, secret, format) {
+    static verifyToken(token, secret, format = "Bearer") {
         if (token.startsWith(format)) {
             token = token.slice(format.length + 1);
         }
