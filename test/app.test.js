@@ -26,10 +26,10 @@ describe("AccessControlMiddleware", () => {
             expect(acm.hasRelatedToken({body: "Foo"})).to.be.false;
         });
         it("should return true when token is provided in request body", () => {
-            const relatedToken = jwt.sign({}, "MySecret", {
+            const token = jwt.sign({}, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(acm.hasRelatedToken({relatedToken})).to.be.true;
+            expect(acm.hasRelatedToken({token})).to.be.true;
         });
 
         it("should throw an exception when invoking method without argument", () => {
@@ -38,22 +38,57 @@ describe("AccessControlMiddleware", () => {
     });
 
     describe("checkRelated", () => {
-        it("should return true when the token provided is not valid", () => {
-            const relatedToken = jwt.sign({grants: {resource: "Foo"}}, "MySecret", {
+        it("should return false when the token provided is not for the requested resource", () => {
+            const payload = {
+                user: {
+                    id: 1,
+                    name: "Admin"
+                },
+                profil: [
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
+                ]
+            };
+            const relatedToken = jwt.sign({data: {resource: "Foo", user: 1}}, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(acm.checkRelated({token: relatedToken, resource: "Bar"})).to.be.false;
+            expect(acm.checkRelated({payload, token: relatedToken, resource: "Bar"})).to.be.false;
         });
 
-        it("should return false when the token provided is valid", () => {
-            const relatedToken = jwt.sign({grants: {resource: "Foo"}}, "MySecret", {
+        it("should return true when the token provided is valid", () => {
+            const payload = {
+                user: {
+                    id: 1,
+                    name: "Admin"
+                },
+                profil: [
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
+                ]
+            };
+            const relatedToken = jwt.sign({data: {resource: "Foo", user: 1}}, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(acm.checkRelated({token: relatedToken, resource: "Foo"})).to.be.true;
+            expect(acm.checkRelated({payload, token: relatedToken, resource: "Foo"})).to.be.true;
         });
 
         it("should throw an exception when invoking method without argument", () => {
             expect(acm.checkRelated).to.throw("Missing parameters : token, resource")
+        });
+
+        it("should throw an exception when invoking method without token argument", () => {
+            const relatedToken = jwt.sign({data: {resource: "Foo"}}, "MySecret", {
+                expiresIn: 10080 // in seconds
+            });
+            expect(() => {acm.checkRelated({token: relatedToken})}).to.throw("Missing parameter : resource");
+        });
+
+        it("should throw an exception when invoking method without resource argument", () => {
+            expect(() => {acm.checkRelated({resource: "Foo"})}).to.throw("Missing parameter : token");
         });
     });
     describe("isMultipleResources", () => {
@@ -210,8 +245,8 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 }
             }, "MySecret", {
-                expiresIn: 10080 // in seconds
-            });
+                    expiresIn: 10080 // in seconds
+                });
             const resource = "user";
             const action = "create";
             const reqStub = {
@@ -235,8 +270,8 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 }
             }, "MySecret", {
-                expiresIn: 10080 // in seconds
-            });
+                    expiresIn: 10080 // in seconds
+                });
             const resource = "profil";
             const action = "update";
             const reqStub = {
@@ -260,8 +295,8 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 }
             }, "MySecret", {
-                expiresIn: 10080 // in seconds
-            });
+                    expiresIn: 10080 // in seconds
+                });
             const resource = "user";
             const action = "create";
             const reqStub = {
@@ -272,7 +307,7 @@ describe("AccessControlMiddleware", () => {
             };
             const context = {
                 source: "params",
-                key: "foo.Id"
+                key: "fooId"
             }
             const resStub = {};
             const nextStub = () => {return "ok"};
@@ -290,8 +325,8 @@ describe("AccessControlMiddleware", () => {
                     {fkey: "1", type: "profile"}
                 ]
             }, "MySecret", {
-                expiresIn: 10080 // in seconds
-            });
+                    expiresIn: 10080 // in seconds
+                });
             const resource = "profil";
             const action = "update";
             const reqStub = {
@@ -300,17 +335,147 @@ describe("AccessControlMiddleware", () => {
                 },
                 body: {},
                 params: {
-                    fooId: 1
+                    fooId: "1"
                 }
             };
             const context = {
                 type: "profile",
-                fkey: "1"
+                source: "params",
+                key: "fooId"
             }
             const resStub = {};
             const nextStub = () => {return "ok"};
             expect(acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.be.eq("ok");
             expect(resStub.permission).to.be.not.empty;
+        });
+
+        it("should return the result of the next function and response object must contains the validate permission when user have a dynamic permission", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                },
+                profil: [
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
+                ]
+            }, "MySecret", {
+                    expiresIn: 10080 // in seconds
+                });
+            const resource = "profil";
+            const action = "update";
+            const reqStub = {
+                headers: {
+                    authorization: accessToken
+                },
+                body: {},
+                params: {
+                    fooId: "1"
+                }
+            };
+            const context = {
+                source: "params",
+                key: "fooId"
+            }
+            const resStub = {};
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.be.eq("ok");
+            expect(resStub.permission).to.be.not.empty;
+        });
+
+        it("should bypass other check when relatedToken is passed in request body", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                },
+                profil: [
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
+                ]
+            }, "MySecret", {
+                    expiresIn: 10080 // in seconds
+                });
+            const relatedToken = jwt.sign({
+                data: {
+                    resource: "bar",
+                    user: 1,
+                    typeAction: "create",
+                    possession: "any"
+                }
+            }, "MySecret", {
+                    expiresIn: 10080 // in seconds
+                });
+            const resource = "bar";
+            const action = "create";
+            const reqStub = {
+                headers: {
+                    authorization: accessToken
+                },
+                body: {
+                    token: relatedToken
+                },
+            };
+            const resStub = {};
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.be.eq("ok");
+            expect(resStub.permission).to.be.not.empty;
+        });
+
+        it("should not bypass other check when relatedToken is passed in request body but user give does not match", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                },
+                profil: [
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
+                ]
+            }, "MySecret", {
+                    expiresIn: 10080 // in seconds
+                });
+            const relatedToken = jwt.sign({
+                data: {
+                    resource: "bar",
+                    user: 2,
+                    typeAction: "create",
+                    possession: "any"
+                }
+            }, "MySecret", {
+                    expiresIn: 10080 // in seconds
+                });
+            const resource = "bar";
+            const action = "create";
+            const reqStub = {
+                headers: {
+                    authorization: accessToken
+                },
+                body: {
+                    token: relatedToken
+                },
+            };
+            const resStub = {
+                status: null,
+                message: null,
+                status: function (code) {
+                    this.status = code;
+                    return this;
+                },
+                send: (message) => {
+                    this.message = message;
+                }
+
+            };
+            const nextStub = () => {return "ok"};
+            acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub});
+            expect(resStub.status).to.be.eq(403);
         });
     });
 });
