@@ -29,7 +29,9 @@ class AccessControlMiddleware {
             const payload = Common.verifyToken(req.headers.authorization, this.secret, this.tokenFormat);
             const permission = this.accessControl.can(Common.computeUserName(this.getUserName(payload)));
             if (this.hasRelatedToken(req.body)) {
-                this.checkRelated();
+                if (this.checkRelated({payload, token: req.body.token, resource})) {
+                    isAuthorize = true;
+                }
             } else if (this.isMultipleResources(context)) {
                 if (this.hasGeneric(permission, actions, resource)) {
                     isAuthorize = true
@@ -41,10 +43,10 @@ class AccessControlMiddleware {
                 if (this.hasGeneric(permission, actions, resource)) {
                     isAuthorize = true
                 } else if (this.hasOwn(permission, actions, resource)) {
-                    if (this.isSpecific(context) && this.checkSpecific(context.type, context.fkey, payload.resources)) {
+                    if (this.isSpecific(context) && this.checkSpecific(context.type, req[context.source][context.key], payload.resources)) {
                         isAuthorize = true
                     }
-                    else if (this.checkDynamic(context.fkey, payload[resource])) {
+                    else if (this.checkDynamic(req[context.source][context.key], payload[resource])) {
                         isAuthorize = true
                     }
                 }
@@ -53,8 +55,8 @@ class AccessControlMiddleware {
                 res.permission = permission[actions.any](resource);
                 return next();
             }
-            return res.status(403).send(err);
-        }  catch (err) {
+            return res.status(403).send("Insufficient privileges");
+        } catch (err) {
             return res.status(403).send(err);
         }
     }
@@ -127,14 +129,14 @@ class AccessControlMiddleware {
         if (Common.isNotDefined(body)) {
             throw new Error("Missing parameter : body");
         }
-        return Common.isNotEmpty(body.relatedToken);
+        return Common.isNotEmpty(body.token);
     }
 
     /**
      * Check the resource related token to ensure the client can access the resource.
      *
      */
-    checkRelated({token, resource} = {}) {
+    checkRelated({payload, token, resource} = {}) {
         let countError = 0;
         if (Common.isEmpty(token)) {
             countError++;
@@ -150,8 +152,8 @@ class AccessControlMiddleware {
             case 3:
                 throw new Error("Missing parameters : token, resource");
             default:
-                const payload = Common.verifyToken(token, "MySecret", "JWT")
-                return payload.grants.resource === resource;
+                const payloadRelated = Common.verifyToken(token, "MySecret", "JWT")
+                return payloadRelated.data.resource === resource && payload.user.id === payloadRelated.data.user;
         }
 
     }
@@ -182,7 +184,7 @@ class AccessControlMiddleware {
      */
     getActions(action) {
         const actions = {};
-
+        console.log(action);
         switch (action) {
 
             case "create":
