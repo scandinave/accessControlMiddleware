@@ -2,11 +2,12 @@
 const Common = require("./common");
 class AccessControlMiddleware {
 
-    constructor(secret, accessControl, userKey = "user", usernameKey = "name") {
+    constructor(secret, accessControl, tokenFormat = "Bearer", userKey = "user", usernameKey = "name") {
         this.secret = secret;
         this.accessControl = accessControl;
         this.userKey = userKey;
         this.usernameKey = usernameKey;
+        this.tokenFormat = tokenFormat
     }
 
 
@@ -22,33 +23,39 @@ class AccessControlMiddleware {
         try {
             actions = this.getActions(action);
         } catch (err) {
-            return next(err);
+            return res.status(403).send(err);
         }
-        const permission = this.accessControl.can(Common.computeUserName(this.getUserName(req)));
-        if (this.hasRelatedToken(req.body)) {
-            this.checkRelated();
-        } else if (this.isMultipleResources(context)) {
-            if (this.hasGeneric(permission, actions, resource)) {
-                isAuthorize = true
-            } else if (this.hasOwn(permission, actions, resource)) {
-                // User must have access to an filtered list if it have access to some item of the list.
-                isAuthorize = true
-            }
-        } else {
-            if (this.hasGeneric(permission, actions, resource)) {
-                isAuthorize = true
-            } else if (this.hasOwn(permission, actions, resource)) {
-                if (this.checkSpecific(context.type, context.fkey, context.resources)) {
+        try {
+            const payload = Common.verifyToken(req.headers.authorization, this.secret, this.tokenFormat);
+            const permission = this.accessControl.can(Common.computeUserName(this.getUserName(payload)));
+            if (this.hasRelatedToken(req.body)) {
+                this.checkRelated();
+            } else if (this.isMultipleResources(context)) {
+                if (this.hasGeneric(permission, actions, resource)) {
+                    isAuthorize = true
+                } else if (this.hasOwn(permission, actions, resource)) {
+                    // User must have access to an filtered list if it have access to some item of the list.
                     isAuthorize = true
                 }
-                else if (this.checkDynamic(context.fkey, context.resources)) {
+            } else {
+                if (this.hasGeneric(permission, actions, resource)) {
                     isAuthorize = true
+                } else if (this.hasOwn(permission, actions, resource)) {
+                    if (this.isSpecific(context) && this.checkSpecific(context.type, context.fkey, payload.resources)) {
+                        isAuthorize = true
+                    }
+                    else if (this.checkDynamic(context.fkey, payload[resource])) {
+                        isAuthorize = true
+                    }
                 }
             }
-        }
-        if (isAuthorize) {
-            res.permission = permission[actions.any](resource);
-            return next();
+            if (isAuthorize) {
+                res.permission = permission[actions.any](resource);
+                return next();
+            }
+            return res.status(403).send(err);
+        }  catch (err) {
+            return res.status(403).send(err);
         }
     }
 
@@ -59,6 +66,10 @@ class AccessControlMiddleware {
      */
     getUserName(req) {
         return req[this.userKey][this.usernameKey];
+    }
+
+    isSpecific(context) {
+        return Common.isNotEmpty(context.type);
     }
 
     /**

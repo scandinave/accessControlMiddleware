@@ -18,7 +18,7 @@ describe("AccessControlMiddleware", () => {
         ac.grant("u-Admin").createOwn("user");
         ac.grant("u-Admin").updateOwn("profil");
         ac.deny("u-Admin").createAny("role");
-        acm = new AccessControlMiddleware("MySecret", ac);
+        acm = new AccessControlMiddleware("MySecret", ac, "JWT");
         done();
     })
     describe("hasRelatedToken", () => {
@@ -204,11 +204,19 @@ describe("AccessControlMiddleware", () => {
 
     describe("isAuthorized", () => {
         it("should return the result of the next function and response object must contains the validate permission when user have a generic permission", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                }
+            }, "MySecret", {
+                expiresIn: 10080 // in seconds
+            });
             const resource = "user";
             const action = "create";
             const reqStub = {
-                user: {
-                    name: "Admin"
+                headers: {
+                    authorization: accessToken
                 },
                 body: {
 
@@ -221,11 +229,19 @@ describe("AccessControlMiddleware", () => {
         });
 
         it("should return the result of the next function and response object must contains the validate permission when user have a specific/dynamic permission and accessing list of resource", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                }
+            }, "MySecret", {
+                expiresIn: 10080 // in seconds
+            });
             const resource = "profil";
             const action = "update";
             const reqStub = {
-                user: {
-                    name: "Admin"
+                headers: {
+                    authorization: accessToken
                 },
                 body: {
 
@@ -238,15 +254,21 @@ describe("AccessControlMiddleware", () => {
         });
 
         it("should return the result of the next function and response object must contains the validate permission when user have a specific/dynamic permission", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                }
+            }, "MySecret", {
+                expiresIn: 10080 // in seconds
+            });
             const resource = "user";
             const action = "create";
             const reqStub = {
-                user: {
-                    name: "Admin"
+                headers: {
+                    authorization: accessToken
                 },
-                body: {
-
-                }
+                body: {}
             };
             const context = {
                 source: "params",
@@ -259,17 +281,31 @@ describe("AccessControlMiddleware", () => {
         });
 
         it("should return the result of the next function and response object must contains the validate permission when user have a specific permission", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                },
+                resources: [
+                    {fkey: "1", type: "profile"}
+                ]
+            }, "MySecret", {
+                expiresIn: 10080 // in seconds
+            });
             const resource = "profil";
             const action = "update";
             const reqStub = {
-                user: {
-                    name: "Admin"
+                headers: {
+                    authorization: accessToken
                 },
-                body: {}
+                body: {},
+                params: {
+                    fooId: 1
+                }
             };
             const context = {
-                source: "params",
-                key: "foo.Id"
+                type: "profile",
+                fkey: "1"
             }
             const resStub = {};
             const nextStub = () => {return "ok"};
