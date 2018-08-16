@@ -4,6 +4,7 @@ Express Middleware for AccessControl library that support generics, specifics an
 
 [![Build Status](https://travis-ci.org/scandinave/accessControlMiddleware.svg?branch=dev)](https://travis-ci.org/scandinave/accessControlMiddleware)
 [![Node version](https://img.shields.io/node/v/[NPM-MODULE-NAME].svg?style=flat)](http://nodejs.org/download/)
+[![Coverage Status](https://coveralls.io/repos/github/scandinave/accessControlMiddleware/badge.svg?branch=dev)](https://coveralls.io/github/scandinave/accessControlMiddleware?branch=dev)
 
 ## Disclaimer
 
