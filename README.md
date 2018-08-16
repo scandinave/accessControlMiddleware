@@ -20,7 +20,7 @@ Express Middleware for AccessControl library that support generics, specifics an
 
 * Install AccessControlMiddleware
 ```bash
-npm install accessControlMiddleware
+npm install @scandinave/accessControlMiddleware
 ```
 
 * Create a new instance of AccessControlMiddleware
