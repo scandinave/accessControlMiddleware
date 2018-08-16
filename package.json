@@ -4,7 +4,7 @@
   "description": "Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check",
   "main": "app.js",
   "scripts": {
-    "test": "export NODE_ENV=test && nyc --reporter=html --reporter=lcov mocha --timeout 10000 --exit"
+    "test": "nyc --reporter=html --reporter=lcov mocha --timeout 10000 --exit"
   },
   "keywords": [
     "HRBAC"
