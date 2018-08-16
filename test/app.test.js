@@ -18,7 +18,9 @@ describe("AccessControlMiddleware", () => {
         ac.grant("u-Admin").createOwn("user");
         ac.grant("u-Admin").updateOwn("profil");
         ac.deny("u-Admin").createAny("role");
-        acm = new AccessControlMiddleware("MySecret", ac, "JWT");
+        acm = new AccessControlMiddleware({secret: "MySecret", accessControl: ac, tokenFormat: "JWT", filter: () => {
+            
+        }});
         done();
     })
     describe("hasRelatedToken", () => {
