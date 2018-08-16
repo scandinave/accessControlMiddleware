@@ -29,8 +29,8 @@ class AccessControlMiddleware {
      * @param {*} options.userIdKey THe key of the request user object that hold the user id. (default: id)
      * @param {*} options.transformUserName A function to apply on the AccessControl instance role name to handle role and user in it.( eg: prefix with -u)
      */
-    constructor({secret, accessControl, filter, tokenFormat = "Bearer", userKey = "user", usernameKey = "name", userIdKey = "id", 
-        transformUserName} = {}) {
+    constructor({ secret, accessControl, filter, tokenFormat = "Bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
+        transformUserName } = {}) {
         this.secret = secret;
         this.accessControl = accessControl;
         this.userKey = userKey;
@@ -38,33 +38,33 @@ class AccessControlMiddleware {
         this.userIdKey = userIdKey;
         this.tokenFormat = tokenFormat;
         this.transformUserName = transformUserName;
-        if(Common.isFunction(filter)) {
+        if (Common.isFunction(filter)) {
             this.filter = filter;
         } else {
             throw new Error("You must define a filter function for user with specifics/dynamics authorizations that need to access list resources")
-        } 
+        }
     }
 
 
-    check({resource, action, context} = {}) {
+    check({ resource, action, context } = {}) {
         return (req, res, next) => {
             this.isAuthorized(resource, action, context, req, res, next);
         }
     }
 
-    isAuthorized({resource, action, context, req, res, next} = {}) {
+    isAuthorized({ resource, action, context, req, res, next } = {}) {
         let isAuthorize = false;
         let actions;
         try {
             actions = this.getActions(action);
         } catch (err) {
-            return res.status(403).send(err);
+            return res.status(403).send(err.message);
         }
         try {
             const payload = Common.verifyToken(req.headers.authorization, this.secret, this.tokenFormat);
             const permission = this.accessControl.can(this.transformUserName(this.getUserName(payload)));
             if (this.hasRelatedToken(req.body)) {
-                if (this.checkRelated({payload, token: req.body.token, resource})) {
+                if (this.checkRelated({ payload, token: req.body.token, resource })) {
                     isAuthorize = true;
                 }
             } else if (this.isMultipleResources(context)) {
@@ -172,7 +172,7 @@ class AccessControlMiddleware {
      * Check the resource related token to ensure the client can access the resource.
      *
      */
-    checkRelated({payload, token, resource} = {}) {
+    checkRelated({ payload, token, resource } = {}) {
         let countError = 0;
         if (Common.isEmpty(token)) {
             countError++;
