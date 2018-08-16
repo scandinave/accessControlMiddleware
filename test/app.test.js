@@ -8,6 +8,7 @@ chai.use(require("chai-match"));
 const AccessControlMiddleware = require("../app");
 const jwt = require("jsonwebtoken");
 const AccessControl = require("accesscontrol");
+const Common = require("../common");
 let ac;
 let acm;
 
@@ -19,8 +20,8 @@ describe("AccessControlMiddleware", () => {
         ac.grant("u-Admin").updateOwn("profil");
         ac.deny("u-Admin").createAny("role");
         acm = new AccessControlMiddleware({secret: "MySecret", accessControl: ac, tokenFormat: "JWT", filter: () => {
-            
-        }});
+
+        }, transformUserName: Common.computeUserName});
         done();
     })
     describe("hasRelatedToken", () => {

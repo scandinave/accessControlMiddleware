@@ -26,13 +26,18 @@ class AccessControlMiddleware {
      * @param {*} options.tokenFormat The format of the token ( eg: Bearer, JWT)
      * @param {*} options.userKey The request param key used to store the user (default: user)
      * @param {*} options.usernameKey THe key of the request user object that hold the user name. (default: name)
+     * @param {*} options.userIdKey THe key of the request user object that hold the user id. (default: id)
+     * @param {*} options.transformUserName A function to apply on the AccessControl instance role name to handle role and user in it.( eg: prefix with -u)
      */
-    constructor({secret, accessControl, filter, tokenFormat = "Bearer", userKey = "user", usernameKey = "name"} = {}) {
+    constructor({secret, accessControl, filter, tokenFormat = "Bearer", userKey = "user", usernameKey = "name", userIdKey = "id", 
+        transformUserName} = {}) {
         this.secret = secret;
         this.accessControl = accessControl;
         this.userKey = userKey;
         this.usernameKey = usernameKey;
+        this.userIdKey = userIdKey;
         this.tokenFormat = tokenFormat;
+        this.transformUserName = transformUserName;
         if(Common.isFunction(filter)) {
             this.filter = filter;
         } else {
@@ -57,7 +62,7 @@ class AccessControlMiddleware {
         }
         try {
             const payload = Common.verifyToken(req.headers.authorization, this.secret, this.tokenFormat);
-            const permission = this.accessControl.can(Common.computeUserName(this.getUserName(payload)));
+            const permission = this.accessControl.can(this.transformUserName(this.getUserName(payload)));
             if (this.hasRelatedToken(req.body)) {
                 if (this.checkRelated({payload, token: req.body.token, resource})) {
                     isAuthorize = true;
@@ -68,7 +73,7 @@ class AccessControlMiddleware {
                 } else if (this.hasOwn(permission, actions, resource)) {
                     // User must have access to an filtered list if it have access to some item of the list.
                     isAuthorize = true;
-                    this.filter();
+                    this.filter(req, permission, resource, actions.own);
                 }
             } else {
                 if (this.hasGeneric(permission, actions, resource)) {
@@ -184,7 +189,7 @@ class AccessControlMiddleware {
                 throw new Error("Missing parameters : token, resource");
             default:
                 const payloadRelated = Common.verifyToken(token, "MySecret", "JWT")
-                return payloadRelated.data.resource === resource && payload.user.id === payloadRelated.data.user;
+                return payloadRelated.data.resource === resource && payload[this.userKey][this.userIdKey] === payloadRelated.data[this.userKey];
         }
 
     }
