@@ -77,6 +77,14 @@ class Common {
     static computeUserName(name) {
         return `u-${name}`;
     }
+
+    /**
+     * Check that a variable is a function
+     * @param {*} functionToCheck The variable to check
+     */
+    static isFunction(functionToCheck) {
+        return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+    }
 }
 
 module.exports = Common;
