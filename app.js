@@ -2,12 +2,27 @@
 const Common = require("./common");
 class AccessControlMiddleware {
 
-    constructor(secret, accessControl, tokenFormat = "Bearer", userKey = "user", usernameKey = "name") {
+    /**
+     * Enable a new accessControl middleware.
+     * @param {*} options The list of options used to customize the middleware.
+     * @param {*} options.secret The secret access token key used to sign the token.
+     * @param {*} options.accessControl The AccesssControl instance.
+     * @param {*} options.filter A filter function that will be used to filter findAll resources when user only have specific or dynamic authorization.
+     * @param {*} options.tokenFormat The format of the token ( eg: Bearer, JWT)
+     * @param {*} options.userKey The request param key used to store the user (default: user)
+     * @param {*} options.usernameKey THe key of the request user object that hold the user name. (default: name)
+     */
+    constructor({secret, accessControl, filter, tokenFormat = "Bearer", userKey = "user", usernameKey = "name"} = {}) {
         this.secret = secret;
         this.accessControl = accessControl;
         this.userKey = userKey;
         this.usernameKey = usernameKey;
-        this.tokenFormat = tokenFormat
+        this.tokenFormat = tokenFormat;
+        if(Common.isFunction(filter)) {
+            this.filter = filter;
+        } else {
+            throw new Error("You must define a filter function for user with specifics/dynamics authorizations that need to access list resources")
+        } 
     }
 
 
@@ -37,7 +52,8 @@ class AccessControlMiddleware {
                     isAuthorize = true
                 } else if (this.hasOwn(permission, actions, resource)) {
                     // User must have access to an filtered list if it have access to some item of the list.
-                    isAuthorize = true
+                    isAuthorize = true;
+                    this.filter();
                 }
             } else {
                 if (this.hasGeneric(permission, actions, resource)) {
