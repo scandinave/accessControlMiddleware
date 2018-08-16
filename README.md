@@ -3,6 +3,7 @@
 Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check.
 
 [![Build Status](https://travis-ci.org/scandinave/accessControlMiddleware.svg?branch=dev)](https://travis-ci.org/scandinave/accessControlMiddleware)
+[![Node version](https://img.shields.io/node/v/[NPM-MODULE-NAME].svg?style=flat)](http://nodejs.org/download/)
 
 ## Disclaimer
 
