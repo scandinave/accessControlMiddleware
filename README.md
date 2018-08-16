@@ -1,6 +1,8 @@
 # AccessControlMiddleware
 
-Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check
+Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check.
+
+[![Build Status](https://travis-ci.org/scandinave/accessControlMiddleware.svg?branch=dev)](https://travis-ci.org/scandinave/accessControlMiddleware)
 
 ## Disclaimer
 
