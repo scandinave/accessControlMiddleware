@@ -4,7 +4,8 @@
   "description": "Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check",
   "main": "app.js",
   "scripts": {
-    "test": "nyc --reporter=html --reporter=lcov mocha --timeout 10000 --exit"
+    "test": "nyc --reporter=html --reporter=lcov mocha --timeout 10000 --exit",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js -v"
   },
   "keywords": [
     "HRBAC"
@@ -19,6 +20,7 @@
     "chai-match": "^1.1.1",
     "chai-sorted": "^0.2.0",
     "chai-things": "^0.2.0",
+    "coveralls": "^3.0.2",
     "eslint": "^5.3.0",
     "mocha": "^5.2.0",
     "nyc": "^12.0.2"
