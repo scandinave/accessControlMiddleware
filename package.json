@@ -14,10 +14,13 @@
     "Middleware",
     "NodeJS"
   ],
-  "homepage": "https://github.com/scandinave/accessControlMiddleware",
+  "homepage": "https://github.com/scandinave/accessControlMiddleware#readme",
+  "bugs": {
+    "url": "https://github.com/scandinave/accessControlMiddleware/issues"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/scandinave/accessControlMiddleware"
+    "url": "git+https://github.com/scandinave/accessControlMiddleware.git"
   },
   "author": "LE BARO Romain",
   "license": "MIT",
