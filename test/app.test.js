@@ -29,19 +29,19 @@ describe("AccessControlMiddleware", () => {
 
     describe("new AccessControlMiddleware", () => {
         it("should throw an error when no filter function is passed", () => {
-            expect(() => new AccessControlMiddleware({ secret: "MySecret", accessControl: ac, tokenFormat: "JWT", transformUserName: Common.computeUserName }))
+            expect(() => new AccessControlMiddleware({secret: "MySecret", accessControl: ac, tokenFormat: "JWT", transformUserName: Common.computeUserName}))
                 .to.throw("You must define a filter function for user with specifics/dynamics authorizations that need to access list resources");
         });
-    })
+    });
     describe("hasRelatedToken", () => {
         it("should return false when no token is provided in request body", () => {
-            expect(acm.hasRelatedToken({ body: "Foo" })).to.be.false;
+            expect(acm.hasRelatedToken({body: "Foo"})).to.be.false;
         });
         it("should return true when token is provided in request body", () => {
             const token = jwt.sign({}, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(acm.hasRelatedToken({ token })).to.be.true;
+            expect(acm.hasRelatedToken({token})).to.be.true;
         });
 
         it("should throw an exception when invoking method without argument", () => {
@@ -57,16 +57,16 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 },
                 profil: [
-                    { id: "1", name: "bar" },
-                    { id: "2", name: "bar" },
-                    { id: "3", name: "bar" },
-                    { id: "4", name: "bar" }
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
                 ]
             };
-            const relatedToken = jwt.sign({ data: { resource: "Foo", user: 1 } }, "MySecret", {
+            const relatedToken = jwt.sign({data: {resource: "Foo", user: 1}}, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(acm.checkRelated({ payload, token: relatedToken, resource: "Bar" })).to.be.false;
+            expect(acm.checkRelated({payload, token: relatedToken, resource: "Bar"})).to.be.false;
         });
 
         it("should return true when the token provided is valid", () => {
@@ -76,16 +76,16 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 },
                 profil: [
-                    { id: "1", name: "bar" },
-                    { id: "2", name: "bar" },
-                    { id: "3", name: "bar" },
-                    { id: "4", name: "bar" }
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
                 ]
             };
-            const relatedToken = jwt.sign({ data: { resource: "Foo", user: 1 } }, "MySecret", {
+            const relatedToken = jwt.sign({data: {resource: "Foo", user: 1}}, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(acm.checkRelated({ payload, token: relatedToken, resource: "Foo" })).to.be.true;
+            expect(acm.checkRelated({payload, token: relatedToken, resource: "Foo"})).to.be.true;
         });
 
         it("should throw an exception when invoking method without argument", () => {
@@ -93,14 +93,14 @@ describe("AccessControlMiddleware", () => {
         });
 
         it("should throw an exception when invoking method without token argument", () => {
-            const relatedToken = jwt.sign({ data: { resource: "Foo" } }, "MySecret", {
+            const relatedToken = jwt.sign({data: {resource: "Foo"}}, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(() => { acm.checkRelated({ token: relatedToken }) }).to.throw("Missing parameter : resource");
+            expect(() => {acm.checkRelated({token: relatedToken})}).to.throw("Missing parameter : resource");
         });
 
         it("should throw an exception when invoking method without resource argument", () => {
-            expect(() => { acm.checkRelated({ resource: "Foo" }) }).to.throw("Missing parameter : token");
+            expect(() => {acm.checkRelated({resource: "Foo"})}).to.throw("Missing parameter : token");
         });
     });
     describe("isMultipleResources", () => {
@@ -108,7 +108,7 @@ describe("AccessControlMiddleware", () => {
             expect(acm.isMultipleResources({})).to.be.true;
         });
         it("should return false when an context is passed", () => {
-            expect(acm.isMultipleResources({ source: "params", key: "fooId" })).to.be.false;
+            expect(acm.isMultipleResources({source: "params", key: "fooId"})).to.be.false;
         });
     });
 
@@ -156,7 +156,7 @@ describe("AccessControlMiddleware", () => {
         });
 
         it("should throw an error when the action not exist", () => {
-            expect(() => { acm.getActions("find") }).to.throw("Invalid action");
+            expect(() => {acm.getActions("find")}).to.throw("Invalid action");
         });
     });
 
@@ -193,7 +193,7 @@ describe("AccessControlMiddleware", () => {
     describe("checkSpecific", () => {
         it("should should return true when the user token resource array contain the specified resource", () => {
             const resources = [
-                { fkey: "1", type: "foo" }
+                {fkey: "1", type: "foo"}
             ];
             const resource = "foo"
             const fkey = "1";
@@ -202,7 +202,7 @@ describe("AccessControlMiddleware", () => {
 
         it("should should return false when the user token resource array not contain the specified resource", () => {
             const resources = [
-                { fkey: "1", type: "foo" }
+                {fkey: "1", type: "foo"}
             ];
             const resource = "foo"
             const fkey = "3";
@@ -211,7 +211,7 @@ describe("AccessControlMiddleware", () => {
 
         it("should should return false when the user token resource array not contain the specified resource type", () => {
             const resources = [
-                { fkey: "1", type: "foo" }
+                {fkey: "1", type: "foo"}
             ];
             const resource = "bar"
             const fkey = "1";
@@ -222,7 +222,7 @@ describe("AccessControlMiddleware", () => {
     describe("checkDynamique", () => {
         it("should return true when the user token contains the specified resource as a related resource.", () => {
             const resources = [
-                { id: "1", bar: "foo" }
+                {id: "1", bar: "foo"}
             ];
             const resource = "bar"
             const fkey = "1";
@@ -231,7 +231,7 @@ describe("AccessControlMiddleware", () => {
 
         it("should return false when the user token not contains the specified resource as a related resource.", () => {
             const resources = [
-                { id: "1", bar: "foo" }
+                {id: "1", bar: "foo"}
             ];
             const fkey = "2";
             expect(acm.checkDynamic(fkey, resources)).to.be.false;
@@ -270,8 +270,8 @@ describe("AccessControlMiddleware", () => {
                 }
             };
             const resStub = {};
-            const nextStub = () => { return "ok" };
-            expect(acm.isAuthorized({ resource, action, req: reqStub, res: resStub, next: nextStub })).to.be.eq("ok");
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, req: reqStub, res: resStub, next: nextStub})).to.be.true;
             expect(resStub.permission).to.be.not.empty;
         });
 
@@ -295,8 +295,8 @@ describe("AccessControlMiddleware", () => {
                 }
             };
             const resStub = {};
-            const nextStub = () => { return "ok" };
-            expect(acm.isAuthorized({ resource, action, req: reqStub, res: resStub, next: nextStub })).to.be.eq("ok");
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, req: reqStub, res: resStub, next: nextStub})).to.be.true;
             expect(resStub.permission).to.be.not.empty;
         });
 
@@ -322,8 +322,8 @@ describe("AccessControlMiddleware", () => {
                 key: "fooId"
             }
             const resStub = {};
-            const nextStub = () => { return "ok" };
-            expect(acm.isAuthorized({ resource, action, context, req: reqStub, res: resStub, next: nextStub })).to.be.eq("ok");
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.be.true;
             expect(resStub.permission).to.be.not.empty;
         });
 
@@ -334,7 +334,7 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 },
                 resources: [
-                    { fkey: "1", type: "profile" }
+                    {fkey: "1", type: "profile"}
                 ]
             }, "MySecret", {
                     expiresIn: 10080 // in seconds
@@ -356,8 +356,8 @@ describe("AccessControlMiddleware", () => {
                 key: "fooId"
             }
             const resStub = {};
-            const nextStub = () => { return "ok" };
-            expect(acm.isAuthorized({ resource, action, context, req: reqStub, res: resStub, next: nextStub })).to.be.eq("ok");
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.be.true;
             expect(resStub.permission).to.be.not.empty;
         });
 
@@ -368,10 +368,10 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 },
                 profil: [
-                    { id: "1", name: "bar" },
-                    { id: "2", name: "bar" },
-                    { id: "3", name: "bar" },
-                    { id: "4", name: "bar" }
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
                 ]
             }, "MySecret", {
                     expiresIn: 10080 // in seconds
@@ -392,8 +392,8 @@ describe("AccessControlMiddleware", () => {
                 key: "fooId"
             }
             const resStub = {};
-            const nextStub = () => { return "ok" };
-            expect(acm.isAuthorized({ resource, action, context, req: reqStub, res: resStub, next: nextStub })).to.be.eq("ok");
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.be.true;
             expect(resStub.permission).to.be.not.empty;
         });
 
@@ -415,10 +415,10 @@ describe("AccessControlMiddleware", () => {
                 }
 
             };
-            const nextStub = () => { return "ok" };
-            acm.isAuthorized({ resource, action, context, req: reqStub, res: resStub, next: nextStub });
-            expect(resStub.status).to.be.eq(403);
-            expect(resStub.message).to.be.eq("Invalid action");
+            const nextStub = () => {return "ok"};
+            expect(() => acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.throw("Invalid action");
+            // expect(resStub.status).to.be.eq(403);
+            // expect(resStub.message).to.be.eq("Invalid action");
         });
 
         it("should bypass other check when relatedToken is passed in request body", () => {
@@ -428,10 +428,10 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 },
                 profil: [
-                    { id: "1", name: "bar" },
-                    { id: "2", name: "bar" },
-                    { id: "3", name: "bar" },
-                    { id: "4", name: "bar" }
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
                 ]
             }, "MySecret", {
                     expiresIn: 10080 // in seconds
@@ -457,8 +457,8 @@ describe("AccessControlMiddleware", () => {
                 },
             };
             const resStub = {};
-            const nextStub = () => { return "ok" };
-            expect(acm.isAuthorized({ resource, action, context, req: reqStub, res: resStub, next: nextStub })).to.be.eq("ok");
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.be.true;
             expect(resStub.permission).to.be.not.empty;
         });
 
@@ -469,10 +469,10 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 },
                 profil: [
-                    { id: "1", name: "bar" },
-                    { id: "2", name: "bar" },
-                    { id: "3", name: "bar" },
-                    { id: "4", name: "bar" }
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
                 ]
             }, "MySecret", {
                     expiresIn: 10080 // in seconds
@@ -509,9 +509,8 @@ describe("AccessControlMiddleware", () => {
                 }
 
             };
-            const nextStub = () => { return "ok" };
-            acm.isAuthorized({ resource, action, context, req: reqStub, res: resStub, next: nextStub });
-            expect(resStub.status).to.be.eq(403);
+            const nextStub = () => {return "ok"};
+            expect(acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub})).to.be.false;
         });
         it("should send response 403 when token verification failed", () => {
             const accessToken = jwt.sign({
@@ -520,10 +519,10 @@ describe("AccessControlMiddleware", () => {
                     name: "Admin"
                 },
                 profil: [
-                    { id: "1", name: "bar" },
-                    { id: "2", name: "bar" },
-                    { id: "3", name: "bar" },
-                    { id: "4", name: "bar" }
+                    {id: "1", name: "bar"},
+                    {id: "2", name: "bar"},
+                    {id: "3", name: "bar"},
+                    {id: "4", name: "bar"}
                 ]
             }, "Foo", {
                     expiresIn: 10080 // in seconds
@@ -547,9 +546,148 @@ describe("AccessControlMiddleware", () => {
                 }
 
             };
-            const nextStub = () => { return "ok" };
-            acm.isAuthorized({ resource, action, context, req: reqStub, res: resStub, next: nextStub });
+            const nextStub = () => {return "ok"};
+            expect(() => acm.isAuthorized({resource, action, context, req: reqStub, res: resStub, next: nextStub}).to.throw("invalid signature"));
+        });
+    });
+
+    describe("computeAuthorizations", () => {
+        it("should validate when both authorizations are ok", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                }
+            }, "MySecret", {expiresIn: 10080});
+            const authorizations = [{
+                resource: "user",
+                action: "create"
+            },
+            {
+                resource: "role",
+                action: "create"
+            }]
+            const reqStub = {
+                headers: {
+                    authorization: accessToken
+                },
+                body: {
+
+                }
+            }
+            const resStub = {};
+            const nextStub = () => {return "ok"};
+            acm.computeAuthorizations({authorizations, req: reqStub, res: resStub, next: nextStub});
+            expect(resStub.permission).to.be.not.empty;
+        });
+
+        it("should validate when only one authorizations are ok", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                }
+            }, "MySecret", {expiresIn: 10080});
+            const authorizations = [{
+                resource: "user",
+                action: "create"
+            },
+            {
+                resource: "foo",
+                action: "create"
+            }]
+            const reqStub = {
+                headers: {
+                    authorization: accessToken
+                },
+                body: {
+
+                }
+            }
+            const resStub = {};
+            const nextStub = () => {return "ok"};
+            acm.computeAuthorizations({authorizations, req: reqStub, res: resStub, next: nextStub});
+            expect(resStub.permission).to.be.not.empty;
+        });
+
+        it("should not validate when both authorizations are not ok", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                }
+            }, "MySecret", {expiresIn: 10080});
+            const authorizations = [{
+                resource: "bar",
+                action: "create"
+            },
+            {
+                resource: "foo",
+                action: "create"
+            }]
+            const reqStub = {
+                headers: {
+                    authorization: accessToken
+                },
+                body: {
+
+                }
+            }
+            const resStub = {
+                status: null,
+                message: null,
+                status: function (code) {
+                    this.status = code;
+                    return this;
+                },
+                send: (message) => {
+                    this.message = message;
+                }
+
+            };
+            const nextStub = () => {return "ok"};
+            acm.computeAuthorizations({authorizations, req: reqStub, res: resStub, next: nextStub});
             expect(resStub.status).to.be.eq(403);
+        });
+
+        it("should validate when one of authorizations actions does not exists and other authorizations is ok", () => {
+            const accessToken = jwt.sign({
+                user: {
+                    id: 1,
+                    name: "Admin"
+                }
+            }, "MySecret", {expiresIn: 10080});
+            const authorizations = [{
+                resource: "user",
+                action: "foo"
+            },
+            {
+                resource: "profil",
+                action: "update"
+            }]
+            const reqStub = {
+                headers: {
+                    authorization: accessToken
+                },
+                body: {
+
+                }
+            }
+            const resStub = {
+                statusCode: null,
+                message: null,
+                status: function (code) {
+                    this.statusCode = code;
+                    return this;
+                },
+                send: (message) => {
+                    this.message = message;
+                }
+
+            };
+            const nextStub = () => {return "ok"};
+            acm.computeAuthorizations({authorizations, req: reqStub, res: resStub, next: nextStub});
+            expect(resStub.permission).to.be.not.empty;
         });
     });
 });

@@ -1,19 +1,20 @@
 /**
  * Copyright 15/08/2018 LE BARO Romain
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), 
-to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, 
-sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following 
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following
 conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, 
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
 DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 "use strict";
+
 const Common = require("./common");
 class AccessControlMiddleware {
 
@@ -29,8 +30,8 @@ class AccessControlMiddleware {
      * @param {*} options.userIdKey THe key of the request user object that hold the user id. (default: id)
      * @param {*} options.transformUserName A function to apply on the AccessControl instance role name to handle role and user in it.( eg: prefix with -u)
      */
-    constructor({ secret, accessControl, filter, tokenFormat = "Bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
-        transformUserName } = {}) {
+    constructor({secret, accessControl, filter, tokenFormat = "Bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
+        transformUserName} = {}) {
         this.secret = secret;
         this.accessControl = accessControl;
         this.userKey = userKey;
@@ -46,25 +47,70 @@ class AccessControlMiddleware {
     }
 
 
-    check({ resource, action, context } = {}) {
+    /**
+     * Method to proctect a route in expressJS
+     * @param {Array} authorizations An array of authorizations(resource, action, context) to check
+     */
+    check(authorizations) {
         return (req, res, next) => {
-            this.isAuthorized(resource, action, context, req, res, next);
+            computeAuthorizations(authorizations, req, res, next)
         }
     }
 
-    isAuthorized({ resource, action, context, req, res, next } = {}) {
+    /**
+     * Test if a user/role have a authorization to access a resource
+     * @param {Object} params The parameter used to check
+     * @param {Array} params.authorizations An array of authorizations(resource, action, context) to check
+     * @param {HttpRequest} params.req The request
+     * @param {HttpResponse} params.res The response
+     */
+    computeAuthorizations({authorizations, req, res, next} = {}) {
+        let errors = [];
+        let i = 0;
+        let authorized = false;
+        do {
+            const authorization = authorizations[i];
+            try {
+                if (this.isAuthorized({resource: authorization.resource, action: authorization.action, context: authorization.context, req, res})) {
+                    authorized = true;
+                } else {
+                    errors.push({resource: authorization.resource, action: authorization.action, context: authorization.context, err: "Insufficient privileges"});
+                }
+            } catch (err) {
+                errors.push({resource: authorization.resource, action: authorization.action, context: authorization.context, err: err.message});
+            } finally {
+                i++;
+            }
+        } while (i < authorizations.length && authorized === false);
+        if (authorized) {
+            next();
+        } else {
+            res.status(403).send(errors);
+        }
+    }
+
+    /**
+     * Test if a user/role have a authorization to access a resource
+     * @param {Object} params The parameter used to check
+     * @param {String} params.resource The resource that will be accessed
+     * @param {String} params.action The action on the resource being accessed
+     * @param {HttpRequest} params.req The request
+     * @param {HttpResponse} params.res The response
+     * @return {Boolean} Return true if the user/role have the authorization, false otherwise
+     */
+    isAuthorized({resource, action, context, req, res} = {}) {
         let isAuthorize = false;
         let actions;
         try {
             actions = this.getActions(action);
         } catch (err) {
-            return res.status(403).send(err.message);
+            throw new Error(err.message);
         }
         try {
             const payload = Common.verifyToken(req.headers.authorization, this.secret, this.tokenFormat);
             const permission = this.accessControl.can(this.transformUserName(this.getUserName(payload)));
             if (this.hasRelatedToken(req.body)) {
-                if (this.checkRelated({ payload, token: req.body.token, resource })) {
+                if (this.checkRelated({payload, token: req.body.token, resource})) {
                     isAuthorize = true;
                 }
             } else if (this.isMultipleResources(context)) {
@@ -89,11 +135,11 @@ class AccessControlMiddleware {
             }
             if (isAuthorize) {
                 res.permission = permission[actions.any](resource);
-                return next();
+                return true;
             }
-            return res.status(403).send("Insufficient privileges");
+            return false;
         } catch (err) {
-            return res.status(403).send(err);
+            throw new Error(err.message);
         }
     }
 
@@ -106,6 +152,11 @@ class AccessControlMiddleware {
         return req[this.userKey][this.usernameKey];
     }
 
+    /**
+     * Check if the authorisation is a specific authorization or a dynamic
+     * @param {Object} context The context of the authorization
+     * @return {Boolean} return true if the authorization is specific, false if it is dynamic.
+     */
     isSpecific(context) {
         return Common.isNotEmpty(context.type);
     }
@@ -172,7 +223,7 @@ class AccessControlMiddleware {
      * Check the resource related token to ensure the client can access the resource.
      *
      */
-    checkRelated({ payload, token, resource } = {}) {
+    checkRelated({payload, token, resource} = {}) {
         let countError = 0;
         if (Common.isEmpty(token)) {
             countError++;
@@ -220,7 +271,6 @@ class AccessControlMiddleware {
      */
     getActions(action) {
         const actions = {};
-        console.log(action);
         switch (action) {
 
             case "create":
