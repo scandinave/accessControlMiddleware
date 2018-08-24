@@ -100,4 +100,16 @@ describe("Common", () => {
             expect(() => Common.verifyToken(`Bearer ${token}`, "toto")).to.throw("invalid signature");
         });
     });
+    describe("isFunction", () => {
+        it("should return true when passing a function", () => {
+            expect(Common.isFunction(() => { })).to.be.true;
+        });
+
+        it("should return false when not passing a function", () => {
+            expect(Common.isFunction(2)).to.be.false;
+            expect(Common.isFunction("cds")).to.be.false;
+            expect(Common.isFunction({})).to.be.false;
+            expect(Common.isFunction([])).to.be.false;
+        });
+    });
 });

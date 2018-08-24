@@ -16,6 +16,9 @@ OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 "use strict";
 
 const Common = require("./common");
+const QueryBuilder = require("./queryBuilder").QueryBuilder;
+const QueryParamsFilter = require("./queryBuilder").QueryParamsFilter;
+const QueryParamsFilterOperator = require("./queryBuilder").QueryParamsFilterOperator;
 class AccessControlMiddleware {
 
     /**
@@ -23,15 +26,15 @@ class AccessControlMiddleware {
      * @param {*} options The list of options used to customize the middleware.
      * @param {*} options.secret The secret access token key used to sign the token.
      * @param {*} options.accessControl The AccesssControl instance.
-     * @param {*} options.filter A filter function that will be used to filter findAll resources when user only have specific or dynamic authorization.
+     * @param {*} options.filter A filter function that will be used to filter findAll resources when user only have specifics access on resources.
      * @param {*} options.tokenFormat The format of the token ( eg: Bearer, JWT)
      * @param {*} options.userKey The request param key used to store the user (default: user)
      * @param {*} options.usernameKey THe key of the request user object that hold the user name. (default: name)
      * @param {*} options.userIdKey THe key of the request user object that hold the user id. (default: id)
      * @param {*} options.transformUserName A function to apply on the AccessControl instance role name to handle role and user in it.( eg: prefix with -u)
      */
-    constructor({secret, accessControl, filter, tokenFormat = "Bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
-        transformUserName} = {}) {
+    constructor({ secret, accessControl, filter = null, tokenFormat = "Bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
+        transformUserName } = {}) {
         this.secret = secret;
         this.accessControl = accessControl;
         this.userKey = userKey;
@@ -39,10 +42,12 @@ class AccessControlMiddleware {
         this.userIdKey = userIdKey;
         this.tokenFormat = tokenFormat;
         this.transformUserName = transformUserName;
-        if (Common.isFunction(filter)) {
-            this.filter = filter;
-        } else {
-            throw new Error("You must define a filter function for user with specifics/dynamics authorizations that need to access list resources")
+        if (Common.isNotEmpty(filter)) {
+            if (Common.isFunction(filter)) {
+                this.filterResources = filter;
+            } else {
+                throw new Error("Filter must be a function")
+            }
         }
     }
 
@@ -64,20 +69,20 @@ class AccessControlMiddleware {
      * @param {HttpRequest} params.req The request
      * @param {HttpResponse} params.res The response
      */
-    computeAuthorizations({authorizations, req, res, next} = {}) {
+    computeAuthorizations({ authorizations, req, res, next } = {}) {
         let errors = [];
         let i = 0;
         let authorized = false;
         do {
             const authorization = authorizations[i];
             try {
-                if (this.isAuthorized({resource: authorization.resource, action: authorization.action, context: authorization.context, req, res})) {
+                if (this.isAuthorized({ resource: authorization.resource, action: authorization.action, context: authorization.context, req, res })) {
                     authorized = true;
                 } else {
-                    errors.push({resource: authorization.resource, action: authorization.action, context: authorization.context, err: "Insufficient privileges"});
+                    errors.push({ resource: authorization.resource, action: authorization.action, context: authorization.context, err: "Insufficient privileges" });
                 }
             } catch (err) {
-                errors.push({resource: authorization.resource, action: authorization.action, context: authorization.context, err: err.message});
+                errors.push({ resource: authorization.resource, action: authorization.action, context: authorization.context, err: err.message });
             } finally {
                 i++;
             }
@@ -98,7 +103,7 @@ class AccessControlMiddleware {
      * @param {HttpResponse} params.res The response
      * @return {Boolean} Return true if the user/role have the authorization, false otherwise
      */
-    isAuthorized({resource, action, context, req, res} = {}) {
+    isAuthorized({ resource, action, context, req, res } = {}) {
         let isAuthorize = false;
         let actions;
         try {
@@ -110,7 +115,7 @@ class AccessControlMiddleware {
             const payload = Common.verifyToken(req.headers.authorization, this.secret, this.tokenFormat);
             const permission = this.accessControl.can(this.transformUserName(this.getUserName(payload)));
             if (this.hasRelatedToken(req.body)) {
-                if (this.checkRelated({payload, token: req.body.token, resource})) {
+                if (this.checkRelated({ payload, token: req.body.token, resource })) {
                     isAuthorize = true;
                 }
             } else if (this.isMultipleResources(context)) {
@@ -119,16 +124,13 @@ class AccessControlMiddleware {
                 } else if (this.hasOwn(permission, actions, resource)) {
                     // User must have access to an filtered list if it have access to some item of the list.
                     isAuthorize = true;
-                    this.filter(req, permission, resource, actions.own);
+                    this.filterResources(req, payload.resources, resource);
                 }
             } else {
                 if (this.hasGeneric(permission, actions, resource)) {
                     isAuthorize = true
                 } else if (this.hasOwn(permission, actions, resource)) {
-                    if (this.isSpecific(context) && this.checkSpecific(context.type, req[context.source][context.key], payload.resources)) {
-                        isAuthorize = true
-                    }
-                    else if (this.checkDynamic(req[context.source][context.key], payload[resource])) {
+                    if (this.checkSpecific(context.type, req[context.source][context.key], payload.resources)) {
                         isAuthorize = true
                     }
                 }
@@ -153,31 +155,12 @@ class AccessControlMiddleware {
     }
 
     /**
-     * Check if the authorisation is a specific authorization or a dynamic
-     * @param {Object} context The context of the authorization
-     * @return {Boolean} return true if the authorization is specific, false if it is dynamic.
-     */
-    isSpecific(context) {
-        return Common.isNotEmpty(context.type);
-    }
-
-    /**
-     * Check that the user have correct the dynamic authorization (eg: Association make by a foreign key in database) in it's access token. This make possible authorizations like "user can access it's profil".
-     * @param {String} fkey The primary key of the resource of the route protected
-     * @param {resources} resources The resources objects extract from the user accessToken
-     * @return {Boolean} True if the resource is find inside resources object, False otherwise
-     */
-    checkDynamic(fkey, resources) {
-        return resources.find(resource => resource.id === fkey) !== undefined;
-    }
-
-    /**
-     * Check that the user have the correct specific authorization in it's access token
-     * @param {String} type The resource type of the route protected
-     * @param {String} fkey The primary key of the resource of the route protected
-     * @param {resources} resources The resources objects extract from the user accessToken
-     * @return {Boolean} True if the resource is find inside resources object, False otherwise
-     */
+    * Check that the user have the correct specific authorization in it's access token
+    * @param {String} type The resource type of the route protected
+    * @param {String} fkey The primary key of the resource of the route protected
+    * @param {resources} resources The resources objects extract from the user accessToken
+    * @return {Boolean} True if the resource is find inside resources object, False otherwise
+    */
     checkSpecific(type, fkey, resources) {
         return resources.find(resource => resource.fkey === fkey && resource.type === type) !== undefined;
     }
@@ -223,7 +206,7 @@ class AccessControlMiddleware {
      * Check the resource related token to ensure the client can access the resource.
      *
      */
-    checkRelated({payload, token, resource} = {}) {
+    checkRelated({ payload, token, resource } = {}) {
         let countError = 0;
         if (Common.isEmpty(token)) {
             countError++;
@@ -243,6 +226,23 @@ class AccessControlMiddleware {
                 return payloadRelated.data.resource === resource && payload[this.userKey][this.userIdKey] === payloadRelated.data[this.userKey];
         }
 
+    }
+
+
+    filterResources(req, resources, type) {
+        if (Common.isNotEmpty(resources)) {
+            if (Common.isEmpty(req.query.filters)) {
+                req.query.filters = {};
+            }
+            resources = resources.filter(resource => resource.type === type).map(resource => resource.fkey);
+            if (resources.length > 0) {
+                const resourcesId = `[${Array.from(resources).join(",")}]`;
+                const queryParamsFilter = [new QueryParamsFilter({ filterName: "id", filterValue: resourcesId, operator: QueryParamsFilterOperator.IN })];
+                const query = new QueryBuilder({ filters: queryParamsFilter }).build();
+
+                req.query.filters.id = query.filters.id;
+            }
+        }
     }
 
     /**
