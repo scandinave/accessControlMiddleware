@@ -83,7 +83,20 @@ class Common {
      * @param {*} functionToCheck The variable to check
      */
     static isFunction(functionToCheck) {
-        return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+        try {
+            return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+        } catch (err) {
+            return false;
+        }
+    }
+
+    /**
+     * Check if an object/primitive is a string.
+     * @param {Object} object The object to test
+     * @return {boolean} Return true if the object/primitive is a string. False otherwise.
+     */
+    static isString(object) {
+        return typeof object === "string" || object instanceof String;
     }
 }
 
