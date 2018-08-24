@@ -27,13 +27,13 @@ npm install @scandinave/accessControlMiddleware
 * Create a new instance of AccessControlMiddleware
 ```javascript
     // ac = ... Initialisation of the AccessControl instance.
-    const acm = new AccessControlMiddleware({secret: "MySecret", accessControl: ac, filter: () => {}});
+    const acm = new AccessControlMiddleware({secret: "MySecret", accessControl: ac});
 ```
 
 AccessControlMiddleware parameters are the following :
 * secret: The secret access token key used to sign the token.
 * accessControl: The AccesssControl instance.
-* filter: A filter function that will be used to filter findAll resources when user only have specific or dynamic authorization.
+* filter: A custom filter function that will be used to filter findAll resources when user only have access on a subset of resources.
 * tokenFormat: The format of the token ( eg: Bearer, JWT) (default: Bearer)
 * userKey: The request param key used to store the user (default: user)
 * usernameKey: THe key of the request user object that hold the user name. (default: name)
@@ -41,31 +41,40 @@ AccessControlMiddleware parameters are the following :
 * transformUserName: A function to apply on the AccessControl instance roles name to handle role and user in it.( eg: prefix with -u)
 
 ### filter function
-As dynamics permissions is higthly couple with your application , AccessControlMiddleware can't handle its automaticaly. So you must tell it how to
-process this cases. For example,
-* if you want to handle the access off a user on it's profile you will check that the user accessing the user profile is really the owner of this profile by comparing the token user id with the resource user id.
-* if you want to handle access on a list of user posts, you will check that the ownerId attribut of the posts  will match the user token id
-* etc ...
+By default, AccessControl will filter resource by checking the resources entry of the access token payload.
+It will then inject parameter into the query to filter the request. AccessControlMiddleware follow the [jsonapi](http://jsonapi.org), so the produce query will be
 
-When using filter function, avoid call to the database, as this is a really slow operation. As a solution, you can store the list of each resources the users have access in the access token. This access token must have a short live length to updates the user authorizations and you could use a refresh token to renew automatically access token.
-
-```javascript
-{
-    user: ...
-    posts: [
-        {id: 1, ownerId: 1},
-        {id: 2, ownerId: 1},
-        {id: 3, ownerId: 1},
-        {id: 4, ownerId: 1},
-    ]
+```
+req: {
+    query : {
+        filters: {
+            id: {"value":"[1,2,3]","operator":"in"}
+        }
+    }
 }
 ```
+If you want change this functionnality simply pass your custom filter function to the AccessControlMiddleware contructor.To disable this feature and post filter resource in your route, just pass a empty function : 
 
 ### transformUserName
 
  This middleware handle the use of User rigth in AccessControl like Role. To differenciate between Role and User with the same name (eg: Admin role and Admin user), you can pass a function that will updates all the users names. For example you can prefixe all the users names with __u-__.
 
  How you load your users and roles inside accessControl is up to you and out of the scope of this middleware. AccessControl does not provide any support of user's base authorization but it's work really well.
+
+## Specifics/dynamics resources
+To grant authorizations to a specific resource or a set of resources, you must tell to AccessControlMiddleware, which resources a users can access. To do that, define a resources entry in your access token paylaod in this form: 
+
+```javascript
+resources: [
+    {type: "foo", fkey:"1"}
+    {type: "foo", fkey:"2"}
+    {type: "foo", fkey:"3"}
+    {type: "bar", fkey:"1"}
+]
+```
+
+AccessControlMiddleware handle specifics and dynamics permissions in the same way. Just merge all resources into a unique list and register it, into the access token.
+
 
 ## Protect route
 
@@ -107,9 +116,9 @@ find() {
 }
 ```
 
-* If you don't use the specific feature, just not specify a context.type.
 * context.source is the key used to hold request parameters.
-* key is the resource key in the request parameters objet.
+* context.key is the resource key in the request parameters objet.
+* context.type is the resource type.
 
 
 ## Special case of related resources loading.
