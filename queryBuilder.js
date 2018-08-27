@@ -17,26 +17,26 @@ class QueryBuilder {
    * @param {Array} params.page The page to display.
    */
   constructor({ fields = [], filters = [], sort = [], includes = [], page } = {}) {
-    if (!Array.isArray(fields)) {
-      throw new Error("fields must be a Array object.");
-    }
+    // if (!Array.isArray(fields)) {
+    //   throw new Error("fields must be a Array object.");
+    // }
     if (!Array.isArray(filters)) {
       throw new Error("filters must be a Array object.");
     }
-    if (!Array.isArray(sort)) {
-      throw new Error("sort must be a Array object.");
-    }
-    if (!Array.isArray(includes)) {
-      throw new Error("includes must be a Array object.");
-    }
-    if (Common.isNotEmpty(page) && !(page instanceof QueryParamsPage)) {
-      throw new Error("page must be a QueryParamsPage object.");
-    }
-    this.fields = fields;
+    // if (!Array.isArray(sort)) {
+    //   throw new Error("sort must be a Array object.");
+    // }
+    // if (!Array.isArray(includes)) {
+    //   throw new Error("includes must be a Array object.");
+    // }
+    // if (Common.isNotEmpty(page) && !(page instanceof QueryParamsPage)) {
+    //   throw new Error("page must be a QueryParamsPage object.");
+    // }
+    // this.fields = fields;
     this.filters = filters;
-    this.sort = sort;
-    this.includes = includes;
-    this.page = page;
+    // this.sort = sort;
+    // this.includes = includes;
+    // this.page = page;
   }
 
 
@@ -47,32 +47,33 @@ class QueryBuilder {
   build() {
     const queryParams = {};
     // queryParams.filters = [];
-    if (Common.isNotEmpty(this.fields)) {
-      queryParams.fields = this.fields;
-    }
+    // if (Common.isNotEmpty(this.fields)) {
+    //   queryParams.fields = this.fields;
+    // }
 
     if (Common.isNotEmpty(this.filters)) {
       this.filters.forEach(filter => {
-        const values = JSON.stringify({ value: filter.filterValue, operator: filter.operator });
         queryParams.filters = {};
-        queryParams.filters[filter.filterName] = values;
+        queryParams.filters[filter.filterName] = {};
+        queryParams.filters[filter.filterName].values = filter.filterValues;
+        queryParams.filters[filter.filterName].operator = filter.operator;
       });
     }
 
-    if (Common.isNotEmpty(this.sort)) {
-      this.sort.forEach(sort => {
-        queryParams.sort = {};
-        queryParams.sort[sort.field] = sort.order;
-      });
-    }
-    if (Common.isNotEmpty(this.includes)) {
-      queryParams.includes = this.includes.join(",");
-    }
+    // if (Common.isNotEmpty(this.sort)) {
+    //   this.sort.forEach(sort => {
+    //     queryParams.sort = {};
+    //     queryParams.sort[sort.field] = sort.order;
+    //   });
+    // }
+    // if (Common.isNotEmpty(this.includes)) {
+    //   queryParams.includes = this.includes.join(",");
+    // }
 
-    if (Common.isNotEmpty(this.page)) {
-      queryParams.offset = this.page.offset;
-      queryParams.limit = this.page.limit;
-    }
+    // if (Common.isNotEmpty(this.page)) {
+    //   queryParams.offset = this.page.offset;
+    //   queryParams.limit = this.page.limit;
+    // }
 
     return queryParams;
   }
@@ -90,18 +91,18 @@ class QueryParamsFilter {
    * @param {String} params.filterValue The filter value.
    * @param {QueryParamsFilterOperator} params.operator The operation that will be execute on the filter passed to the query.
    */
-  constructor({ filterName, filterValue, operator = QueryParamsFilterOperator.EQ } = {}) {
+  constructor({ filterName, filterValues, operator = QueryParamsFilterOperator.EQ } = {}) {
     if (!Common.isString(filterName)) {
       throw new Error("filterName must be a String object.");
     }
-    if (!Common.isString(filterValue)) {
-      throw new Error("filterValue must be a String object.");
+    if (!Array.isArray(filterValues)) {
+      throw new Error("filterValue must be an Array object.");
     }
     if (!Common.isString(operator)) {
       throw new Error("operator must be a QueryParamsFilterOperator enum.");
     }
     this.filterName = filterName;
-    this.filterValue = filterValue;
+    this.filterValues = filterValues;
     this.operator = operator;
   }
 }
@@ -109,56 +110,56 @@ class QueryParamsFilter {
 /**
  * Build a sort parameter that can be pass to QueryBuilder object.
  */
-class QueryParamsSort {
-  /**
-   * Build a sort parameter that can be pass to QueryBuilder object.
-   * @param {{}} params An options object that contains parameter to apply on the query.
-   * @param {String} params.field The field to sort
-   * @param {SortOrder} params.order The order of the sort to apply on the field
-   */
-  constructor({ field, order = SortOrder.ASC } = {}) {
-    if (!Common.isString(field)) {
-      throw new Error("field must be a String object.");
-    }
-    if (!Common.isString(order)) {
-      throw new Error("order must be a SortOrder enum.");
-    }
-    this.field = field;
-    this.order = order;
-  }
+// class QueryParamsSort {
+//   /**
+//    * Build a sort parameter that can be pass to QueryBuilder object.
+//    * @param {{}} params An options object that contains parameter to apply on the query.
+//    * @param {String} params.field The field to sort
+//    * @param {SortOrder} params.order The order of the sort to apply on the field
+//    */
+//   constructor({ field, order = SortOrder.ASC } = {}) {
+//     if (!Common.isString(field)) {
+//       throw new Error("field must be a String object.");
+//     }
+//     if (!Common.isString(order)) {
+//       throw new Error("order must be a SortOrder enum.");
+//     }
+//     this.field = field;
+//     this.order = order;
+//   }
 
 
-}
+// }
 
 /**
  * Return only a subset off the results provide by the query.
  */
-class QueryParamsPage {
+// class QueryParamsPage {
 
-  /**
-   * Return only a subset off the results provide by the query.
-   * By default this return the first 10 results.
-   * @param {{}} params An options object that contains parameter to apply on the query.
-   * @param {Number} params.offset The field to sort
-   * @param {Number} params.limit The order of the sort to apply on the field
-   */
-  constructor({ offset = 0, limit = 10 }) {
-    if (!Common.isNumber(offset)) {
-      throw new Error("offset must be a Number object.");
-    }
-    if (!Common.isNumber(limit)) {
-      throw new Error("limit must be a Number object.");
-    }
-    this.offset = offset;
-    this.limit = limit;
-  }
-}
+//   /**
+//    * Return only a subset off the results provide by the query.
+//    * By default this return the first 10 results.
+//    * @param {{}} params An options object that contains parameter to apply on the query.
+//    * @param {Number} params.offset The field to sort
+//    * @param {Number} params.limit The order of the sort to apply on the field
+//    */
+//   constructor({ offset = 0, limit = 10 }) {
+//     if (!Common.isNumber(offset)) {
+//       throw new Error("offset must be a Number object.");
+//     }
+//     if (!Common.isNumber(limit)) {
+//       throw new Error("limit must be a Number object.");
+//     }
+//     this.offset = offset;
+//     this.limit = limit;
+//   }
+// }
 
 
-const SortOrder = {
-  ASC: "asc",
-  DESC: "desc"
-};
+// const SortOrder = {
+//   ASC: "asc",
+//   DESC: "desc"
+// };
 
 const QueryParamsFilterOperator = {
   EQ: "eq",
@@ -176,7 +177,7 @@ module.exports = {
   QueryBuilder,
   QueryParamsFilter,
   QueryParamsFilterOperator,
-  QueryParamsPage,
-  QueryParamsSort,
-  SortOrder
+  // QueryParamsPage,
+  // QueryParamsSort,
+  // SortOrder
 };
