@@ -236,7 +236,30 @@ describe("AccessControlMiddleware", () => {
             ]
             acm.filterResources(reqStub, resources, "foo");
             expect(reqStub.query.filters).to.be.not.empty;
-            expect(reqStub.query.filters).to.have.property("id", `{"value":"[1,2,3]","operator":"in"}`)
+            expect(reqStub.query.filters).to.have.property("id", `{"values":["1","2","3"],"operator":"in"}`);
+        });
+    });
+
+
+    describe("filterResources", () => {
+        it("should inject parameters into the req.query when filters id is passed", () => {
+            const reqStub = {
+                query: {
+                    filters: {
+                        id: JSON.stringify({ values: [1, 2], operator: "in" })
+                    }
+                }
+            };
+            const resources = [
+                { type: "foo", fkey: "1" },
+                { type: "foo", fkey: "2" },
+                { type: "foo", fkey: "3" },
+                { type: "bar", fkey: "1" },
+                { type: "baz", fkey: "2" },
+            ]
+            acm.filterResources(reqStub, resources, "foo");
+            expect(reqStub.query.filters).to.be.not.empty;
+            expect(reqStub.query.filters).to.have.property("id", `{"values":["1","2"],"operator":"in"}`);
         });
     });
 

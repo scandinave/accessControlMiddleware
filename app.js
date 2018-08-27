@@ -236,11 +236,17 @@ class AccessControlMiddleware {
             }
             resources = resources.filter(resource => resource.type === type).map(resource => resource.fkey);
             if (resources.length > 0) {
-                const resourcesId = `[${Array.from(resources).join(",")}]`;
-                const queryParamsFilter = [new QueryParamsFilter({ filterName: "id", filterValue: resourcesId, operator: QueryParamsFilterOperator.IN })];
+                const queryParamsFilter = [new QueryParamsFilter({ filterName: "id", filterValues: resources, operator: QueryParamsFilterOperator.IN })];
                 const query = new QueryBuilder({ filters: queryParamsFilter }).build();
-
-                req.query.filters.id = query.filters.id;
+                if (Common.isEmpty(req.query.filters)) {
+                    req.query.filters = {};
+                }
+                if (Common.isNotEmpty(req.query.filters.id)) {
+                    query.filters.id.values = JSON.parse(req.query.filters.id).values.filter(resourceId => {
+                        return query.filters.id.values.includes(resourceId);
+                    });
+                }
+                req.query.filters.id = JSON.stringify({ values: query.filters.id.values, operator: query.filters.id.operator });
             }
         }
     }
