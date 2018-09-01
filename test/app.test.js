@@ -228,15 +228,15 @@ describe("AccessControlMiddleware", () => {
                 query: {}
             };
             const resources = [
-                { type: "foo", fkey: "1" },
-                { type: "foo", fkey: "2" },
-                { type: "foo", fkey: "3" },
-                { type: "bar", fkey: "1" },
-                { type: "baz", fkey: "2" },
+                { type: "foo", fkey: 1 },
+                { type: "foo", fkey: 2 },
+                { type: "foo", fkey: 3 },
+                { type: "bar", fkey: 1 },
+                { type: "baz", fkey: 2 },
             ]
             acm.filterResources(reqStub, resources, "foo");
             expect(reqStub.query.filters).to.be.not.empty;
-            expect(reqStub.query.filters).to.have.property("id", `{"values":["1","2","3"],"operator":"in"}`);
+            expect(reqStub.query.filters).to.have.property("id", `{"values":[1,2,3],"operator":"in"}`);
         });
     });
 
@@ -251,15 +251,15 @@ describe("AccessControlMiddleware", () => {
                 }
             };
             const resources = [
-                { type: "foo", fkey: "1" },
-                { type: "foo", fkey: "2" },
-                { type: "foo", fkey: "3" },
-                { type: "bar", fkey: "1" },
-                { type: "baz", fkey: "2" },
+                { type: "foo", fkey: 1 },
+                { type: "foo", fkey: 2 },
+                { type: "foo", fkey: 3 },
+                { type: "bar", fkey: 1 },
+                { type: "baz", fkey: 2 },
             ]
             acm.filterResources(reqStub, resources, "foo");
             expect(reqStub.query.filters).to.be.not.empty;
-            expect(reqStub.query.filters).to.have.property("id", `{"values":["1","2"],"operator":"in"}`);
+            expect(reqStub.query.filters).to.have.property("id", `{"values":[1,2],"operator":"in"}`);
         });
     });
 
