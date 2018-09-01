@@ -4,7 +4,7 @@
   "description": "Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check",
   "main": "app.js",
   "scripts": {
-    "test": "nyc --reporter=html --reporter=lcov mocha --timeout 10000 --exit",
+    "test": "nyc --reporter=html --reporter=lcov mocha --recursive --timeout 10000 --exit",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js -v"
   },
   "keywords": [
@@ -26,16 +26,23 @@
   "license": "MIT",
   "devDependencies": {
     "accesscontrol": "^2.2.1",
+    "body-parser": "^1.18.3",
     "chai": "^4.1.2",
     "chai-http": "^4.0.0",
     "chai-like": "^1.1.1",
     "chai-match": "^1.1.1",
     "chai-sorted": "^0.2.0",
     "chai-things": "^0.2.0",
+    "cors": "^2.8.4",
     "coveralls": "^3.0.2",
     "eslint": "^5.4.0",
+    "express": "^4.16.3",
     "mocha": "^5.2.0",
-    "nyc": "^12.0.2"
+    "nyc": "^12.0.2",
+    "objection": "^1.2.6",
+    "passport": "^0.4.0",
+    "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0"
   },
   "dependencies": {
     "jsonwebtoken": "^8.3.0"

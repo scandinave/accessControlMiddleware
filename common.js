@@ -70,6 +70,17 @@ class Common {
     }
 
     /**
+    * Generate a new user token
+    * @param {Object} data  The data for which the token will be generated
+    * @return {String} The JWT that contains user data.
+  */
+    static generateToken(data, secret) {
+        return jwt.sign(data, secret, {
+            expiresIn: 10080 // in seconds
+        });
+    }
+
+    /**
     * Prefix the user name to avoid collision with role name in accessControl object.
     * @param {string} name The name of the user.
     * @return {string} The prefixed user name.
