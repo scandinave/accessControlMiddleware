@@ -15,7 +15,6 @@ Express Middleware for AccessControl library that support generics, specifics an
 ## Permission Type
 * Generics : Permissions that applied to a list of resources.(eg: findAll)
 * Specifics: Permissions that applied to a specific resource. (eg: find)
-* Dynamics : Permissions that applied on a list of resources base on one context.(eg: findAllBy)
 
 ## How to use
 
@@ -38,7 +37,7 @@ AccessControlMiddleware parameters are the following :
 * userKey: The request param key used to store the user (default: user)
 * usernameKey: THe key of the request user object that hold the user name. (default: name)
 * userIdKey: THe key of the request user object that hold the user id. (default: id)
-* transformUserName: A function to apply on the AccessControl instance roles name to handle role and user in it.( eg: prefix with -u)
+* transformUserName: A function to apply on the AccessControl instance roles name to handle role and user in it.( default : prefix with u-)
 
 ### filter function
 By default, AccessControl will filter resource by checking the resources entry of the access token payload.
@@ -57,12 +56,12 @@ If you want change this functionnality simply pass your custom filter function t
 
 ### transformUserName
 
- This middleware handle the use of User rigth in AccessControl like Role. To differenciate between Role and User with the same name (eg: Admin role and Admin user), you can pass a function that will updates all the users names. For example you can prefixe all the users names with __u-__.
+This middleware handle the use of User rigth in AccessControl like Role. To differenciate between Role and User with the same name (eg: Admin role and Admin user), you can pass a function that will updates all the users names. For example you can prefixe all the users names with __u-__.
 
- How you load your users and roles inside accessControl is up to you and out of the scope of this middleware. AccessControl does not provide any support of user's base authorization but it's work really well.
+How you load your users and roles inside accessControl is up to you and out of the scope of this middleware. AccessControl does not provide any support of user's base authorization but it's work really well.
 
 ## Specifics/dynamics resources
-To grant authorizations to a specific resource or a set of resources, you must tell to AccessControlMiddleware, which resources a users can access. To do that, define a resources entry in your access token paylaod in this form: 
+To grant authorizations to a specific resource or a set of resources, you must tell to AccessControlMiddleware, which resources a users can access. To do that, define a resources entry in your access token payload in this form: 
 
 ```javascript
 resources: [

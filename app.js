@@ -33,8 +33,8 @@ class AccessControlMiddleware {
      * @param {*} options.userIdKey THe key of the request user object that hold the user id. (default: id)
      * @param {*} options.transformUserName A function to apply on the AccessControl instance role name to handle role and user in it.( eg: prefix with -u)
      */
-    constructor({ secret, accessControl, filter = null, tokenFormat = "Bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
-        transformUserName } = {}) {
+    constructor({ secret, accessControl, filter = null, tokenFormat = "bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
+        transformUserName = (name) => { return `u-${name}` } } = {}) {
         this.secret = secret;
         this.accessControl = accessControl;
         this.userKey = userKey;
@@ -58,7 +58,7 @@ class AccessControlMiddleware {
      */
     check(authorizations) {
         return (req, res, next) => {
-            computeAuthorizations(authorizations, req, res, next)
+            this.computeAuthorizations({ authorizations, req, res, next });
         }
     }
 
@@ -73,7 +73,7 @@ class AccessControlMiddleware {
         let errors = [];
         let i = 0;
         let authorized = false;
-        do {
+        while (i < authorizations.length && authorized === false) {
             const authorization = authorizations[i];
             try {
                 if (this.isAuthorized({ resource: authorization.resource, action: authorization.action, context: authorization.context, req, res })) {
@@ -86,7 +86,7 @@ class AccessControlMiddleware {
             } finally {
                 i++;
             }
-        } while (i < authorizations.length && authorized === false);
+        }
         if (authorized) {
             next();
         } else {
@@ -162,7 +162,7 @@ class AccessControlMiddleware {
     * @return {Boolean} True if the resource is find inside resources object, False otherwise
     */
     checkSpecific(type, fkey, resources) {
-        return resources.find(resource => resource.fkey === fkey && resource.type === type) !== undefined;
+        return resources.find(resource => Number(resource.fkey) === Number(fkey) && resource.type === type) !== undefined;
     }
 
     /**
@@ -222,7 +222,7 @@ class AccessControlMiddleware {
             case 3:
                 throw new Error("Missing parameters : token, resource");
             default:
-                const payloadRelated = Common.verifyToken(token, "MySecret", "JWT")
+                const payloadRelated = Common.verifyToken(token, this.secret, this.tokenFormat)
                 return payloadRelated.data.resource === resource && payload[this.userKey][this.userIdKey] === payloadRelated.data[this.userKey];
         }
 
@@ -234,7 +234,7 @@ class AccessControlMiddleware {
             if (Common.isEmpty(req.query.filters)) {
                 req.query.filters = {};
             }
-            resources = resources.filter(resource => resource.type === type).map(resource => resource.fkey);
+            resources = resources.filter(resource => resource.type === type).map(resource => Number(resource.fkey));
             if (resources.length > 0) {
                 const queryParamsFilter = [new QueryParamsFilter({ filterName: "id", filterValues: resources, operator: QueryParamsFilterOperator.IN })];
                 const query = new QueryBuilder({ filters: queryParamsFilter }).build();
