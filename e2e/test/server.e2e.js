@@ -3,12 +3,12 @@ chai.use(require("chai-http"));
 chai.use(require("chai-like"));
 chai.use(require("chai-things"));
 chai.use(require("chai-sorted"));
-const server = require("./server/server");
+const server = require("../server/server");
 const should = chai.should();
 const expect = chai.expect();
 const Jwt = require("jsonwebtoken");
 const ExtractJwt = require("passport-jwt").ExtractJwt;
-const httpCode = require("./http_code");
+const httpCode = require("../http_code");
 const common = require("../../common");
 
 let loginRequest;
@@ -60,6 +60,15 @@ describe("e2e", () => {
                 .set("Authorization", `bearer ${token}`)
                 .send();
             res.status.should.be.eql(httpCode.HTTP_FORBIDDEN);
+        });
+
+        it("should be able to access a generic resources that have multiple authorizations", async () => {
+            const res = await chai.request(server)
+                .get(`/multiple`)
+                .set("Content-Type", "application/json")
+                .set("Authorization", `bearer ${token}`)
+                .send();
+            res.status.should.be.eql(httpCode.HTTP_OK);
         });
     });
 
