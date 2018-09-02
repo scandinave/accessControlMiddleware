@@ -8,10 +8,10 @@ const passport = require("passport");
 const JwtStrategy = require("passport-jwt").Strategy;
 const ExtractJwt = require("passport-jwt").ExtractJwt;
 const LocalStrategy = require("passport-local");
-const Common = require("../../../common");
+const Common = require("../../common");
 const httpCode = require("../http_code");
 const AccessControl = require("accesscontrol");
-const AccessControlMiddleware = require("../../../app");
+const AccessControlMiddleware = require("../../app");
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -28,6 +28,7 @@ app.get(`/bar`, [passport.authenticate("jwt", { session: false }), accessControl
 }])], (req, res) => {
     res.status(httpCode.HTTP_OK).send();
 });
+
 
 app.get(`/foo/:fooId`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
     resource: "foo",
@@ -57,6 +58,16 @@ app.get(`/baz`, [passport.authenticate("jwt", { session: false }), accessControl
     action: "read"
 }])], (req, res) => {
     res.status(httpCode.HTTP_OK).json();
+});
+
+app.get(`/multiple`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
+    resource: "multiple",
+    action: "read"
+}, {
+    resource: "bar",
+    action: "read"
+}])], (req, res) => {
+    res.status(httpCode.HTTP_OK).send();
 });
 
 
