@@ -3,8 +3,18 @@
   "version": "2.0.1",
   "description": "Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check",
   "main": "app.js",
+  "nyc": {
+    "all": true,
+    "include": [
+      "app.js",
+      "e2e/**/*.js"
+    ],
+    "exclude": [
+      "e2e/test"
+    ]
+  },
   "scripts": {
-    "test": "nyc --reporter=html --reporter=lcov mocha --recursive --timeout 10000 --exit",
+    "test": "nyc --reporter=html --reporter=lcov mocha --recursive  --opts ./mocha.opts --timeout 10000 --exit",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js -v"
   },
   "keywords": [
