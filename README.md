@@ -133,17 +133,16 @@ const jwt = require("jsonwebtoken");
 
 const relatedToken = jwt.sign({
     data: {resource, user: user.id, typeAction, possession, attributes}
-    }, "MySecret", {expiresIn: 60}
-})
+    }, "MySecret", {expiresIn: 60});
 ```
 The expiresIn parameter must be short but enough long to take into account request latency as the your client will need to fetch the related resources after the main resources.
 You must send this token with the response of the main resource. If you follow the [jsonapi.org](http://jsonapi.org), this must be place inside the links.related field.
 
 ```javascript
  {
-     links.related = [
-         `https://www.myDomain.org/api/bar?token=${relatedToken}`
-     ]
+    links.related = [
+        `https://www.myDomain.org/api/bar?token=${relatedToken}`
+    ]
  }
 ```
 

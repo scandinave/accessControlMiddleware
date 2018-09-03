@@ -57,7 +57,7 @@ class Common {
    * @param {string} format The token format (eg: JWT, Bearer ...)
    * @return {Object} The decode token data
    */
-    static verifyToken(token, secret, format = "Bearer") {
+    static verifyToken(token, secret, format = "bearer") {
         if (token.startsWith(format)) {
             token = token.slice(format.length + 1);
         }
@@ -74,9 +74,9 @@ class Common {
     * @param {Object} data  The data for which the token will be generated
     * @return {String} The JWT that contains user data.
   */
-    static generateToken(data, secret) {
+    static generateToken(data, secret, expiresIn = 10080) {
         return jwt.sign(data, secret, {
-            expiresIn: 10080 // in seconds
+            expiresIn // in seconds
         });
     }
 

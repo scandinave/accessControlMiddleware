@@ -12,6 +12,7 @@ const Common = require("../../common");
 const httpCode = require("../http_code");
 const AccessControl = require("accesscontrol");
 const AccessControlMiddleware = require("../../app");
+const jwt = require("jsonwebtoken");
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -21,6 +22,7 @@ app.use(cors());
 initAuthentification();
 
 const accessControlMiddleware = new AccessControlMiddleware({ secret: "MySecret", accessControl: getAuthorizations() });
+const USER_ID = 1;
 
 app.get(`/bar`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
     resource: "bar",
@@ -35,7 +37,27 @@ app.get(`/foo/:fooId`, [passport.authenticate("jwt", { session: false }), access
     action: "read",
     context: { type: "foo", source: "params", key: `fooId` }
 }])], (req, res) => {
-    res.status(httpCode.HTTP_OK).end()
+    const relatedToken = Common.generateToken({
+        data: {
+            resource: "baz",
+            user: USER_ID,
+            typeAction: "read",
+            possession: "any",
+            attributes: null
+        }
+    }, "MySecret");
+    data = {
+        data: {
+            foo: [],
+
+        },
+        links: {
+            related: [
+                `http://localhost:3000/bar?token=${relatedToken}`
+            ]
+        }
+    }
+    res.status(httpCode.HTTP_OK).json(data)
 });
 
 app.get(`/foo`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
@@ -105,7 +127,7 @@ function initAuthentification() {
     const localLogin = new LocalStrategy(localOptions, (email, password, done) => {
         done(null, {
             user: {
-                id: 1,
+                id: USER_ID,
                 email: "foo.bar@baz.com",
                 firstname: "foo",
                 name: "bar"
@@ -127,7 +149,7 @@ function initAuthentification() {
     const jwtLogin = new JwtStrategy(jwtOptions, (payload, done) => {
         done(null, {
             user: {
-                id: 1,
+                id: USER_ID,
                 email: "foo.bar@baz.com",
                 firstname: "foo",
                 name: "bar"
