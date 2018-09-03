@@ -82,4 +82,22 @@ describe("e2e", () => {
             res.status.should.be.eql(httpCode.HTTP_OK);
         });
     });
+
+    describe("CheckRelated", () => {
+        it("should be able to access related resources.", async () => {
+            const res = await chai.request(server)
+                .get(`/foo/1`)
+                .set("Content-Type", "application/json")
+                .set("Authorization", `bearer ${token}`)
+                .send();
+
+            const relatedToken = res.body.links.related[0].split("token=")[1];
+            const resRelated = await chai.request(server)
+                .get(`/baz`)
+                .set("Content-Type", "application/json")
+                .set("Authorization", `bearer ${token}`)
+                .query({ token: relatedToken })
+            resRelated.status.should.be.eql(httpCode.HTTP_OK);
+        });
+    });
 });

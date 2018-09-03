@@ -90,14 +90,14 @@ describe("Common", () => {
             const token = jwt.sign({ data: { resource: "Foo" } }, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(Common.verifyToken(`Bearer ${token}`, "MySecret")).to.be.an("object");
+            expect(Common.verifyToken(`bearer ${token}`, "MySecret")).to.be.an("object");
         });
 
         it("should failed when bad secret is used a Bearer token", () => {
             const token = jwt.sign({ data: { resource: "Foo" } }, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
-            expect(() => Common.verifyToken(`Bearer ${token}`, "toto")).to.throw("invalid signature");
+            expect(() => Common.verifyToken(`bearer ${token}`, "toto")).to.throw("invalid signature");
         });
     });
     describe("isFunction", () => {
