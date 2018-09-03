@@ -114,8 +114,9 @@ class AccessControlMiddleware {
         try {
             const payload = Common.verifyToken(req.headers.authorization, this.secret, this.tokenFormat);
             const permission = this.accessControl.can(this.transformUserName(this.getUserName(payload)));
-            if (this.hasRelatedToken(req.body)) {
-                if (this.checkRelated({ payload, token: req.body.token, resource })) {
+            if (this.hasRelatedToken(req.query)) {
+                console.log("related token", req.query.token);
+                if (this.checkRelated({ payload, token: req.query.token, resource })) {
                     isAuthorize = true;
                 }
             } else if (this.isMultipleResources(context)) {
@@ -192,14 +193,11 @@ class AccessControlMiddleware {
     /**
      * Check if the client send a resource related token that cause the request
      * to bypass others checks.
-     * @param body The request body.
-     * @return True if a related token is present in the request body, false otherwise
+     * @param query The request query.
+     * @return True if a related token is present in the request query, false otherwise
      */
-    hasRelatedToken(body) {
-        if (Common.isNotDefined(body)) {
-            throw new Error("Missing parameter : body");
-        }
-        return Common.isNotEmpty(body.token);
+    hasRelatedToken(query) {
+        return Common.isNotEmpty(query) && Common.isNotEmpty(query.token);
     }
 
     /**

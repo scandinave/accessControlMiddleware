@@ -26,18 +26,14 @@ describe("AccessControlMiddleware", () => {
     });
 
     describe("hasRelatedToken", () => {
-        it("should return false when no token is provided in request body", () => {
-            expect(acm.hasRelatedToken({ body: "Foo" })).to.be.false;
+        it("should return false when no token is provided in request query", () => {
+            expect(acm.hasRelatedToken({ query: "Foo" })).to.be.false;
         });
-        it("should return true when token is provided in request body", () => {
+        it("should return true when token is provided in request query", () => {
             const token = jwt.sign({}, "MySecret", {
                 expiresIn: 10080 // in seconds
             });
             expect(acm.hasRelatedToken({ token })).to.be.true;
-        });
-
-        it("should throw an exception when invoking method without argument", () => {
-            expect(acm.hasRelatedToken).to.throw("Missing parameter : body")
         });
     });
 
@@ -403,7 +399,7 @@ describe("AccessControlMiddleware", () => {
             // expect(resStub.message).to.be.eq("Invalid action");
         });
 
-        it("should bypass other check when relatedToken is passed in request body", () => {
+        it("should bypass other check when relatedToken is passed in request query", () => {
             const accessToken = jwt.sign({
                 user: {
                     id: 1,
@@ -434,7 +430,7 @@ describe("AccessControlMiddleware", () => {
                 headers: {
                     authorization: accessToken
                 },
-                body: {
+                query: {
                     token: relatedToken
                 },
             };
@@ -444,7 +440,7 @@ describe("AccessControlMiddleware", () => {
             expect(resStub.permission).to.be.not.empty;
         });
 
-        it("should not bypass other check when relatedToken is passed in request body but user give does not match", () => {
+        it("should not bypass other check when relatedToken is passed in request query but user give does not match", () => {
             const accessToken = jwt.sign({
                 user: {
                     id: 1,
@@ -475,7 +471,7 @@ describe("AccessControlMiddleware", () => {
                 headers: {
                     authorization: accessToken
                 },
-                body: {
+                query: {
                     token: relatedToken
                 },
             };
