@@ -125,7 +125,7 @@ You want user to be able to create a resource of type Foo. So you give the autho
 * The first, is to tell you competetent administrator to also add an authorization to let the user see the Bar resource name.
 * The second, is to used the related mecanisme incoparated with this middleware.
 
-AccessControlMiddleware will check for the presence of a field __token__ in the request body. If it found one, the token is verify and the resource accessed is compared against the informations contains in the token. This following code is an example of how generate this kind of token. How you use it, is your responsability.
+AccessControlMiddleware will check for the presence of a field __token__ in the request query. If it found one, the token is verify and the resource accessed is compared against the informations contains in the token. This following code is an example of how generate this kind of token. How you use it, is your responsability.
 
 ```javascript
 const jwt = require("jsonwebtoken");
