@@ -33,8 +33,8 @@ class AccessControlMiddleware {
      * @param {*} options.userIdKey THe key of the request user object that hold the user id. (default: id)
      * @param {*} options.transformUserName A function to apply on the AccessControl instance role name to handle role and user in it.( eg: prefix with -u)
      */
-    constructor({ secret, accessControl, filter = null, tokenFormat = "bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
-        transformUserName = (name) => { return `u-${name}` } } = {}) {
+    constructor({secret, accessControl, filter = null, tokenFormat = "bearer", userKey = "user", usernameKey = "name", userIdKey = "id",
+        transformUserName = (name) => {return `u-${name}`}} = {}) {
         this.secret = secret;
         this.accessControl = accessControl;
         this.userKey = userKey;
@@ -58,7 +58,7 @@ class AccessControlMiddleware {
      */
     check(authorizations) {
         return (req, res, next) => {
-            this.computeAuthorizations({ authorizations, req, res, next });
+            this.computeAuthorizations({authorizations, req, res, next});
         }
     }
 
@@ -69,20 +69,20 @@ class AccessControlMiddleware {
      * @param {HttpRequest} params.req The request
      * @param {HttpResponse} params.res The response
      */
-    computeAuthorizations({ authorizations, req, res, next } = {}) {
+    computeAuthorizations({authorizations, req, res, next} = {}) {
         let errors = [];
         let i = 0;
         let authorized = false;
         while (i < authorizations.length && authorized === false) {
             const authorization = authorizations[i];
             try {
-                if (this.isAuthorized({ resource: authorization.resource, action: authorization.action, context: authorization.context, req, res })) {
+                if (this.isAuthorized({resource: authorization.resource, action: authorization.action, context: authorization.context, req, res})) {
                     authorized = true;
                 } else {
-                    errors.push({ resource: authorization.resource, action: authorization.action, context: authorization.context, err: "Insufficient privileges" });
+                    errors.push({resource: authorization.resource, action: authorization.action, context: authorization.context, err: "Insufficient privileges"});
                 }
             } catch (err) {
-                errors.push({ resource: authorization.resource, action: authorization.action, context: authorization.context, err: err.message });
+                errors.push({resource: authorization.resource, action: authorization.action, context: authorization.context, err: err.message});
             } finally {
                 i++;
             }
@@ -103,9 +103,10 @@ class AccessControlMiddleware {
      * @param {HttpResponse} params.res The response
      * @return {Boolean} Return true if the user/role have the authorization, false otherwise
      */
-    isAuthorized({ resource, action, context, req, res } = {}) {
+    isAuthorized({resource, action, context, req, res} = {}) {
         let isAuthorize = false;
         let actions;
+        let possession;
         try {
             actions = this.getActions(action);
         } catch (err) {
@@ -116,28 +117,33 @@ class AccessControlMiddleware {
             const permission = this.accessControl.can(this.transformUserName(this.getUserName(payload)));
             if (this.hasRelatedToken(req.query)) {
                 console.log("related token", req.query.token);
-                if (this.checkRelated({ payload, token: req.query.token, resource })) {
+                if (this.checkRelated({payload, token: req.query.token, resource})) {
                     isAuthorize = true;
+                    possession = "any";
                 }
             } else if (this.isMultipleResources(context)) {
                 if (this.hasGeneric(permission, actions, resource)) {
-                    isAuthorize = true
+                    isAuthorize = true;
+                    possession = "any";
                 } else if (this.hasOwn(permission, actions, resource)) {
                     // User must have access to an filtered list if it have access to some item of the list.
                     isAuthorize = true;
                     this.filterResources(req, payload.resources, resource);
+                    possession = "own";
                 }
             } else {
                 if (this.hasGeneric(permission, actions, resource)) {
-                    isAuthorize = true
+                    isAuthorize = true;
+                    possession = "own";
                 } else if (this.hasOwn(permission, actions, resource)) {
                     if (this.checkSpecific(context.type, req[context.source][context.key], payload.resources)) {
                         isAuthorize = true
+                        possession = "own";
                     }
                 }
             }
             if (isAuthorize) {
-                res.permission = permission[actions.any](resource);
+                res.permission = permission[actions[possession]](resource);
                 return true;
             }
             return false;
@@ -204,7 +210,7 @@ class AccessControlMiddleware {
      * Check the resource related token to ensure the client can access the resource.
      *
      */
-    checkRelated({ payload, token, resource } = {}) {
+    checkRelated({payload, token, resource} = {}) {
         let countError = 0;
         if (Common.isEmpty(token)) {
             countError++;
@@ -234,8 +240,8 @@ class AccessControlMiddleware {
             }
             resources = resources.filter(resource => resource.type === type).map(resource => Number(resource.fkey));
             if (resources.length > 0) {
-                const queryParamsFilter = [new QueryParamsFilter({ filterName: "id", filterValues: resources, operator: QueryParamsFilterOperator.IN })];
-                const query = new QueryBuilder({ filters: queryParamsFilter }).build();
+                const queryParamsFilter = [new QueryParamsFilter({filterName: "id", filterValues: resources, operator: QueryParamsFilterOperator.IN})];
+                const query = new QueryBuilder({filters: queryParamsFilter}).build();
                 if (Common.isEmpty(req.query.filters)) {
                     req.query.filters = {};
                 }
@@ -244,7 +250,7 @@ class AccessControlMiddleware {
                         return query.filters.id.values.includes(resourceId);
                     });
                 }
-                req.query.filters.id = JSON.stringify({ values: query.filters.id.values, operator: query.filters.id.operator });
+                req.query.filters.id = JSON.stringify({values: query.filters.id.values, operator: query.filters.id.operator});
             }
         }
     }
@@ -260,7 +266,7 @@ class AccessControlMiddleware {
 
     /**
      * Check that a permission is valid.
-     * @param {*} permission The objectionJS permissionObject
+     * @param {*} permission The AccessControl permissionObject
      * @param {*} action The action/posession to check
      * @param {*} resource The resource to validate.
      * @return {boolean} True if the permission is valid , false otherwise.
