@@ -36,6 +36,7 @@ describe("e2e", () => {
     describe("FindAll", () => {
 
         it("should be able to get access generic resources", async () => {
+            console.log(token);
             const res = await chai.request(server)
                 .get(`/bar`)
                 .set("Content-Type", "application/json")

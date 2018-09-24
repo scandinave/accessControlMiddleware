@@ -128,7 +128,7 @@ class AccessControlMiddleware {
                 } else if (this.hasOwn(permission, actions, resource)) {
                     // User must have access to an filtered list if it have access to some item of the list.
                     isAuthorize = true;
-                    this.filterResources(req, payload.resources, resource);
+                    this.filterResources(req, payload[this.userKey].resources, resource);
                     possession = "own";
                 }
             } else {
@@ -136,7 +136,7 @@ class AccessControlMiddleware {
                     isAuthorize = true;
                     possession = "own";
                 } else if (this.hasOwn(permission, actions, resource)) {
-                    if (this.checkSpecific(context.type, req[context.source][context.key], payload.resources)) {
+                    if (this.checkSpecific(context.type, req[context.source][context.key], payload[this.userKey].resources)) {
                         isAuthorize = true
                         possession = "own";
                     }

@@ -289,11 +289,11 @@ describe("AccessControlMiddleware", () => {
             const accessToken = jwt.sign({
                 user: {
                     id: 1,
-                    name: "Admin"
-                },
-                resources: [
-                    {type: "profil", fkey: 1}
-                ]
+                    name: "Admin",
+                    resources: [
+                        {type: "profil", fkey: 1}
+                    ]
+                }
             }, "MySecret", {
                     expiresIn: 10080 // in seconds
                 });
@@ -346,11 +346,11 @@ describe("AccessControlMiddleware", () => {
             const accessToken = jwt.sign({
                 user: {
                     id: 1,
-                    name: "Admin"
-                },
-                resources: [
-                    {fkey: "1", type: "profile"}
-                ]
+                    name: "Admin",
+                    resources: [
+                        {fkey: "1", type: "profile"}
+                    ]
+                }
             }, "MySecret", {
                     expiresIn: 10080 // in seconds
                 });
