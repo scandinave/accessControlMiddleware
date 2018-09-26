@@ -107,6 +107,7 @@ class AccessControlMiddleware {
         let isAuthorize = false;
         let actions;
         let possession;
+        let isRelated = false;
         try {
             actions = this.getActions(action);
         } catch (err) {
@@ -116,10 +117,10 @@ class AccessControlMiddleware {
             const payload = Common.verifyToken(req.headers.authorization, this.secret, this.tokenFormat);
             const permission = this.accessControl.can(this.transformUserName(this.getUserName(payload)));
             if (this.hasRelatedToken(req.query)) {
-                console.log("related token", req.query.token);
                 if (this.checkRelated({payload, token: req.query.token, resource})) {
                     isAuthorize = true;
                     possession = "any";
+                    isRelated = true;
                 }
             } else if (this.isMultipleResources(context)) {
                 if (this.hasGeneric(permission, actions, resource)) {
@@ -144,6 +145,17 @@ class AccessControlMiddleware {
             }
             if (isAuthorize) {
                 res.permission = permission[actions[possession]](resource);
+                /**
+                 * Find another method to do that, because use internal method is wrong.
+                 * We need to make this because related permission does not exist in the AccessControl of the user.
+                 */
+                if (isRelated) {
+                    const payloadRelated = Common.verifyToken(req.query.token, this.secret, this.tokenFormat);
+                    res.permission._.attributes = payloadRelated.data.attributes;
+                    res.permission._.granted = true;
+                    res.permission._.resource = payloadRelated.data.resource;
+
+                }
                 return true;
             }
             return false;
@@ -226,7 +238,7 @@ class AccessControlMiddleware {
             case 3:
                 throw new Error("Missing parameters : token, resource");
             default:
-                const payloadRelated = Common.verifyToken(token, this.secret, this.tokenFormat)
+                const payloadRelated = Common.verifyToken(token, this.secret, this.tokenFormat);
                 return payloadRelated.data.resource === resource && payload[this.userKey][this.userIdKey] === payloadRelated.data[this.userKey];
         }
 
