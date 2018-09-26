@@ -1,6 +1,6 @@
 {
   "name": "@scandinave/access-control-middleware",
-  "version": "3.0.1",
+  "version": "4.0.0",
   "description": "Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check",
   "main": "app.js",
   "nyc": {
