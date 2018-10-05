@@ -1,39 +1,41 @@
 {
-  "name": "@scandinave/access-control-middleware",
-  "version": "3.0.0",
-  "description": "Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check",
-  "main": "app.js",
-  "nyc": {
-    "all": true,
-    "include": [
-      "app.js",
-      "e2e/**/*.js"
-    ],
-    "exclude": [
-      "e2e/test"
-    ]
+  "_from": "@scandinave/access-control-middleware@latest",
+  "_id": "@scandinave/access-control-middleware@4.0.0",
+  "_inBundle": false,
+  "_integrity": "sha512-jRV8vLdBM4+o0qTF3xvpsmKD8oE7QLs1um/SiEbA6dQAJLqSafcFOMgGPInnSm9FzG9Bt9nJLoMHqvhITgxNGg==",
+  "_location": "/@scandinave/access-control-middleware",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "@scandinave/access-control-middleware@latest",
+    "name": "@scandinave/access-control-middleware",
+    "escapedName": "@scandinave%2faccess-control-middleware",
+    "scope": "@scandinave",
+    "rawSpec": "latest",
+    "saveSpec": null,
+    "fetchSpec": "latest"
   },
-  "scripts": {
-    "test": "nyc --reporter=html --reporter=lcov mocha --recursive  --opts ./mocha.opts --timeout 10000 --exit",
-    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js -v"
-  },
-  "keywords": [
-    "HRBAC",
-    "AccessControl",
-    "ExpressJS",
-    "Middleware",
-    "NodeJS"
+  "_requiredBy": [
+    "#USER",
+    "/"
   ],
-  "homepage": "https://github.com/scandinave/accessControlMiddleware#readme",
+  "_resolved": "https://registry.npmjs.org/@scandinave/access-control-middleware/-/access-control-middleware-4.0.0.tgz",
+  "_shasum": "e1077928caae876ba58d2a9a84abe67e3fc09f1c",
+  "_spec": "@scandinave/access-control-middleware@latest",
+  "_where": "/media/romain/home/Développements/edwige/edwige-server",
+  "author": {
+    "name": "LE BARO Romain"
+  },
   "bugs": {
     "url": "https://github.com/scandinave/accessControlMiddleware/issues"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/scandinave/accessControlMiddleware.git"
+  "bundleDependencies": false,
+  "dependencies": {
+    "jsonwebtoken": "^8.3.0"
   },
-  "author": "LE BARO Romain",
-  "license": "MIT",
+  "deprecated": false,
+  "description": "Express Middleware for AccessControl library that support generics, specifics and dynamics permissions check",
   "devDependencies": {
     "accesscontrol": "^2.2.1",
     "body-parser": "^1.18.3",
@@ -45,16 +47,42 @@
     "chai-things": "^0.2.0",
     "cors": "^2.8.4",
     "coveralls": "^3.0.2",
-    "eslint": "^5.5.0",
+    "eslint": "^5.6.0",
     "express": "^4.16.3",
     "mocha": "^5.2.0",
     "nyc": "^12.0.2",
-    "objection": "^1.2.6",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0"
   },
-  "dependencies": {
-    "jsonwebtoken": "^8.3.0"
-  }
+  "homepage": "https://github.com/scandinave/accessControlMiddleware#readme",
+  "keywords": [
+    "HRBAC",
+    "AccessControl",
+    "ExpressJS",
+    "Middleware",
+    "NodeJS"
+  ],
+  "license": "MIT",
+  "main": "app.js",
+  "name": "@scandinave/access-control-middleware",
+  "nyc": {
+    "all": true,
+    "include": [
+      "app.js",
+      "e2e/**/*.js"
+    ],
+    "exclude": [
+      "e2e/test"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scandinave/accessControlMiddleware.git"
+  },
+  "scripts": {
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js -v",
+    "test": "nyc --reporter=html --reporter=lcov mocha --recursive  --opts ./mocha.opts --timeout 10000 --exit"
+  },
+  "version": "4.0.0"
 }

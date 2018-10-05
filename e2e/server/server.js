@@ -15,16 +15,16 @@ const AccessControlMiddleware = require("../../app");
 const jwt = require("jsonwebtoken");
 
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json({ limit: "20mb" }));
+app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json({limit: "20mb"}));
 app.use(cors());
 
 initAuthentification();
 
-const accessControlMiddleware = new AccessControlMiddleware({ secret: "MySecret", accessControl: getAuthorizations() });
+const accessControlMiddleware = new AccessControlMiddleware({secret: "MySecret", accessControl: getAuthorizations()});
 const USER_ID = 1;
 
-app.get(`/bar`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
+app.get(`/bar`, [passport.authenticate("jwt", {session: false}), accessControlMiddleware.check([{
     resource: "bar",
     action: "read"
 }])], (req, res) => {
@@ -32,10 +32,10 @@ app.get(`/bar`, [passport.authenticate("jwt", { session: false }), accessControl
 });
 
 
-app.get(`/foo/:fooId`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
+app.get(`/foo/:fooId`, [passport.authenticate("jwt", {session: false}), accessControlMiddleware.check([{
     resource: "foo",
     action: "read",
-    context: { type: "foo", source: "params", key: `fooId` }
+    context: {type: "foo", source: "params", key: `fooId`}
 }])], (req, res) => {
     const relatedToken = Common.generateToken({
         data: {
@@ -60,14 +60,14 @@ app.get(`/foo/:fooId`, [passport.authenticate("jwt", { session: false }), access
     res.status(httpCode.HTTP_OK).json(data)
 });
 
-app.get(`/foo`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
+app.get(`/foo`, [passport.authenticate("jwt", {session: false}), accessControlMiddleware.check([{
     resource: "foo",
     action: "read"
 }])], (req, res) => {
     let bars = [
-        { id: 1 },
-        { id: 2 },
-        { id: 3 }
+        {id: 1},
+        {id: 2},
+        {id: 3}
     ]
     if (req.query.filters !== undefined) { // On necessary in this test as the result is not filter by database request.
         bars = bars.filter(bar => JSON.parse(req.query.filters.id).values.includes(bar.id));
@@ -75,14 +75,14 @@ app.get(`/foo`, [passport.authenticate("jwt", { session: false }), accessControl
     res.status(httpCode.HTTP_OK).json(bars);
 });
 
-app.get(`/baz`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
+app.get(`/baz`, [passport.authenticate("jwt", {session: false}), accessControlMiddleware.check([{
     resource: "baz",
     action: "read"
 }])], (req, res) => {
     res.status(httpCode.HTTP_OK).json();
 });
 
-app.get(`/multiple`, [passport.authenticate("jwt", { session: false }), accessControlMiddleware.check([{
+app.get(`/multiple`, [passport.authenticate("jwt", {session: false}), accessControlMiddleware.check([{
     resource: "multiple",
     action: "read"
 }, {
@@ -99,14 +99,15 @@ app.get(`/multiple`, [passport.authenticate("jwt", { session: false }), accessCo
  * @see server.js#localLogin
  * @return {user} A json object representing the user information if succeed.
 */
-app.post("/login", passport.authenticate("local", { session: false }), (req, res) => {
+app.post("/login", passport.authenticate("local", {session: false}), (req, res) => {
+    console.log(req.user);
     res.status(httpCode.HTTP_OK).json({
         token: Common.generateToken(req.user, "MySecret")
     });
 });
 
 
-server.listen({ port: 3000 }, () => {
+server.listen({port: 3000}, () => {
     console.log(`Server start on port: 3000`);
 }).on("error", err => {
     console.log(`Server failed to start`);
@@ -121,7 +122,7 @@ function initAuthentification() {
 
 
     console.log("Setting up passport configuration");
-    const localOptions = { usernameField: "email" };
+    const localOptions = {usernameField: "email"};
 
     console.log("Setting up local login strategy");
     const localLogin = new LocalStrategy(localOptions, (email, password, done) => {
@@ -130,11 +131,11 @@ function initAuthentification() {
                 id: USER_ID,
                 email: "foo.bar@baz.com",
                 firstname: "foo",
-                name: "bar"
-            },
-            resources: [
-                { type: "foo", fkey: 1 }
-            ]
+                name: "bar",
+                resources: [
+                    {type: "foo", fkey: 1}
+                ]
+            }
         });
     });
 
@@ -152,11 +153,11 @@ function initAuthentification() {
                 id: USER_ID,
                 email: "foo.bar@baz.com",
                 firstname: "foo",
-                name: "bar"
-            },
-            resources: [
-                { type: "foo", fkey: 1 }
-            ]
+                name: "bar",
+                resources: [
+                    {type: "foo", fkey: 1}
+                ]
+            }
         });
     });
 

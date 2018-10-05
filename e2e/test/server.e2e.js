@@ -36,6 +36,7 @@ describe("e2e", () => {
     describe("FindAll", () => {
 
         it("should be able to get access generic resources", async () => {
+            console.log(token);
             const res = await chai.request(server)
                 .get(`/bar`)
                 .set("Content-Type", "application/json")
@@ -44,7 +45,7 @@ describe("e2e", () => {
             res.status.should.be.eql(httpCode.HTTP_OK);
         });
 
-        it("should be able to get access filter list of resources via generic authorizations", async () => {
+        it("should be able to get access to a filter list of resources via generic authorizations", async () => {
             const res = await chai.request(server)
                 .get(`/foo`)
                 .set("Content-Type", "application/json")
@@ -53,7 +54,7 @@ describe("e2e", () => {
             res.status.should.be.eql(httpCode.HTTP_OK);
         });
 
-        it("should not be able to get access generic resources without permissions", async () => {
+        it("should not be able to get access to generic resources without permissions", async () => {
             const res = await chai.request(server)
                 .get(`/baz`)
                 .set("Content-Type", "application/json")
@@ -96,7 +97,7 @@ describe("e2e", () => {
                 .get(`/baz`)
                 .set("Content-Type", "application/json")
                 .set("Authorization", `bearer ${token}`)
-                .query({ token: relatedToken })
+                .query({token: relatedToken})
             resRelated.status.should.be.eql(httpCode.HTTP_OK);
         });
     });
