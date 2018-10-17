@@ -155,6 +155,7 @@ class AccessControlMiddleware {
                     res.permission._.granted = true;
                     res.permission._.resource = payloadRelated.data.resource;
                 }
+                res.permission.possession = possession;
                 return res.permission.granted;
             }
             return false;
