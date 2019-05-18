@@ -36,24 +36,24 @@
   "license": "MIT",
   "devDependencies": {
     "accesscontrol": "^2.2.1",
-    "body-parser": "^1.18.3",
+    "body-parser": "^1.19.0",
     "chai": "^4.2.0",
-    "chai-http": "^4.2.0",
+    "chai-http": "^4.3.0",
     "chai-like": "^1.1.1",
     "chai-match": "^1.1.1",
     "chai-sorted": "^0.2.0",
     "chai-things": "^0.2.0",
     "cors": "^2.8.4",
-    "coveralls": "^3.0.2",
-    "eslint": "^5.7.0",
-    "express": "^4.16.4",
+    "coveralls": "^3.0.3",
+    "eslint": "^5.16.0",
+    "express": "^4.17.0",
     "mocha": "^5.2.0",
-    "nyc": "^12.0.2",
+    "nyc": "^14.1.1",
     "passport": "^0.4.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0"
   },
   "dependencies": {
-    "jsonwebtoken": "^8.3.0"
+    "jsonwebtoken": "^8.5.1"
   }
 }
